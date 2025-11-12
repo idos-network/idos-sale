@@ -219,7 +219,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         }
 
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-        bool isValidLeaf = MerkleProof.verify(_merkleProof, merkleRoot, leaf);
+        bool isValidLeaf = verifyLeaf(_merkleProof, leaf);
         if (!isValidLeaf) revert InvalidLeaf();
 
         require(_amount >= paymentTokenToToken(minContribution), "can't be below minimum");
@@ -420,5 +420,13 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         }
 
         return _amount;
+    }
+
+    /**
+     * @dev Verifies a merkle proof.
+     * declared as virtual to allow overriding for testing purposes
+     */
+    function verifyLeaf(bytes32[] calldata _merkleProof, bytes32 _leaf) internal view virtual returns (bool) {
+        return MerkleProof.verify(_merkleProof, merkleRoot, _leaf);
     }
 }
