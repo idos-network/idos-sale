@@ -12,6 +12,7 @@ contract SaleTest is TestSetup {
         setup(100);
         invest(address(0x1), 100);
 
+        assertRevert("No investors");
         assertRisingTideCap(100);
     }
 }
