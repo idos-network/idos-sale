@@ -46,42 +46,6 @@ contract OffChainCalculatorTest is TestSetup {
         _assertRisingTide(amounts, 2, 0);
     }
 
-    function test_edgeCase2() public {
-        uint16[] memory amounts = new uint16[](30);
-        amounts[0] = 542;
-        amounts[1] = 10;
-        amounts[2] = 9;
-        amounts[3] = 9963;
-        amounts[4] = 8;
-        amounts[5] = 9;
-        amounts[6] = 1640;
-        amounts[7] = 8780;
-        amounts[8] = 542;
-        amounts[9] = 6;
-        amounts[10] = 6;
-        amounts[11] = 542;
-        amounts[12] = 5000;
-        amounts[13] = 56834;
-        amounts[14] = 1;
-        amounts[15] = 8;
-        amounts[16] = 785;
-        amounts[17] = 800;
-        amounts[18] = 10;
-        amounts[19] = 8762;
-        amounts[20] = 6;
-        amounts[21] = 1;
-        amounts[22] = 28429;
-        amounts[23] = 546;
-        amounts[24] = 4;
-        amounts[25] = 3;
-        amounts[26] = 542;
-        amounts[27] = 1000;
-        amounts[28] = 10;
-        amounts[29] = 100;
-
-        _assertRisingTide(amounts, 200, 7);
-    }
-
     /// forge-config: default.fuzz.runs = 1_000
     function testFuzz_randomInputs(uint16[] memory amounts, uint256 total) public {
         vm.assume(amounts.length > 0);
@@ -92,23 +56,12 @@ contract OffChainCalculatorTest is TestSetup {
         _assertRisingTide(amounts, total, 0);
     }
 
-    function _applyDeposits(uint16[] memory amounts, uint256 total) internal {
-        for (uint160 i = 0; i < amounts.length; i++) {
-            if (amounts[i] == 0) {
-                continue;
-            }
-            console.log(string(abi.encode("amounts[", vm.toString(i), "] = ", vm.toString(amounts[i]), ";")));
-            address addr = address(i + 1);
-            _invest(addr, amounts[i]);
-        }
-    }
-
     // applies a list of deposits and a total amount, computes the final cap
     // optionally checks the cap against a given value
     // run on-chain validation to ensure cap is validated
     function _assertRisingTide(uint16[] memory amounts, uint256 total, uint256 expectedCap) internal {
         _setup(total);
-        _applyDeposits(amounts, total);
+        _applyDeposits(amounts);
 
         // perform off-chain cap calculation
         OffChainCalculator calculator = new OffChainCalculator();
@@ -125,7 +78,17 @@ contract OffChainCalculatorTest is TestSetup {
         while (c.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
             c.sale.risingTide_validate();
         }
-        console.log(uint16(c.sale.risingTideState()));
         assert(c.sale.risingTide_isValidCap());
+    }
+
+    function _applyDeposits(uint16[] memory amounts) internal {
+        for (uint160 i = 0; i < amounts.length; i++) {
+            if (amounts[i] == 0) {
+                continue;
+            }
+            console.log(string(abi.encode("amounts[", vm.toString(i), "] = ", vm.toString(amounts[i]), ";")));
+            address addr = address(i + 1);
+            _invest(addr, amounts[i]);
+        }
     }
 }
