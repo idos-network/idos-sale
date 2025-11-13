@@ -7,31 +7,56 @@ import {SaleHarnessNoMerkle} from "test/harness/Sale.sol";
 import {MockERC20} from "test/harness/MockERC20.sol";
 
 contract TestSetup is Test {
-    SaleHarnessNoMerkle sale;
-    MockERC20 token;
-    MockERC20 paymentToken;
-    uint256 start;
-    uint256 end;
-    uint256 startRegistration;
-    uint256 endRegistration;
-
-    struct TestCase {
+    struct Case {
         SaleHarnessNoMerkle sale;
+        MockERC20 usdc;
     }
 
-    function _deploySale(uint64 duration) internal returns (TestCase memory ret) {
-        start = vm.getBlockTimestamp();
-        end = start + duration;
+    TestSetup.Case public c;
 
-        paymentToken = new MockERC20("USDC", "USDC", 6);
-        token = new MockERC20("idos", "idos", 18);
-        token.mint(address(this), 1e8 ether);
+    // deploys a token sale
+    // TODO hardcoding sale target to [1$, 10_000_000$]
+    // hardcoding tokens for sale to 1 ether, but shouldn't be a problem as all we care about are relative allocations
+    function _setup() internal {
+        _setup(1 ether);
+    }
 
-        ret.sale = new SaleHarnessNoMerkle(address(paymentToken), 0.2 * 1e6, start, end, 10 ether, 5 * 1e6, 15 * 1e6);
+    function _setup(uint256 maxTarget) internal {
+        uint256 start = vm.getBlockTimestamp();
+        uint256 end = start + 24 hours;
 
-        sale.setMinContribution(sale.paymentTokenToToken(100 * 1e6));
+        c.usdc = new MockERC20("USDC", "USDC", 6);
+        c.sale = new SaleHarnessNoMerkle(
+            address(c.usdc), // paymentToken
+            1 ether, // rate TODO: set to 1 for now to get it out of the way
+            start, // start timestamp
+            end, // end timestamp
+            1 ether, // tokens for sale TODO: set to 1 for now to get it out of the way
+            1, // min target
+            maxTarget
+        );
 
-        // TODO; the contract will no longer have tokens, so we don't need this
-        token.transfer(address(sale), 1000000 ether);
+        // TODO: min contribution set to minimum non-zero possible, just to get it out of the way for now
+        c.sale.setMinContribution(1);
+    }
+
+    function usdc(uint256 amount) internal pure returns (uint256) {
+        return amount * 1e6;
+    }
+
+    function eth(uint256 amount) internal pure returns (uint256) {
+        return amount * 1e18;
+    }
+
+    function _endSale() internal {
+        vm.warp(c.sale.end() + 1000);
+    }
+
+    function _invest(address addr, uint256 amount) internal {
+        vm.startPrank(addr);
+        c.usdc.mint(addr, amount);
+        c.usdc.approve(address(c.sale), amount);
+        c.sale.buy(amount, new bytes32[](0));
+        vm.stopPrank();
     }
 }
