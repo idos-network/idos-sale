@@ -29,9 +29,9 @@ contract TestSetup is Test {
 
         ret.sale = new SaleHarnessNoMerkle(address(paymentToken), 0.2 * 1e6, start, end, 10 ether, 5 * 1e6, 15 * 1e6);
 
-        sale.setMinContribution(sale.paymentTokenToToken(100 * 1e6));
+        ret.sale.setMinContribution(ret.sale.paymentTokenToToken(100 * 1e6));
 
         // TODO; the contract will no longer have tokens, so we don't need this
-        token.transfer(address(sale), 1000000 ether);
+        token.transfer(address(ret.sale), 1000000 ether);
     }
 }
