@@ -12,7 +12,8 @@ contract OffChainCalculator {
         uint256 investorCount = r.investorCount();
         uint256 investorsLeft = r.investorCount();
         uint256 accum = 0;
-        require(investorCount > 0, "No investors");
+
+        if (investorCount == 0) return 0;
 
         uint256[] memory amounts = new uint256[](investorCount);
         for (uint256 i = 0; i < investorCount; i++) {

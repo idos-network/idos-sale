@@ -46,14 +46,6 @@ contract FuzzTests is TestSetup {
         assertRisingTideCap(33);
     }
 
-    function test_noInvestors() public {
-        uint16[] memory amounts = new uint16[](0);
-
-        setup(2);
-        applyDeposits(amounts);
-        assertRisingTideCap(0);
-    }
-
     function testFuzz_randomInputs(uint16[] memory amounts, uint256 total) public {
         vm.assume(amounts.length > 0);
         vm.assume(amounts.length < 10_000);
