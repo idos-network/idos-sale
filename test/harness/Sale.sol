@@ -11,9 +11,7 @@ contract SaleHarnessNoMerkle is Sale {
         uint256 _end,
         uint256 _totalTokensForSale,
         uint256 _minTarget,
-        uint256 _maxTarget,
-        uint256 _startRegistration,
-        uint256 _endRegistration
+        uint256 _maxTarget
     )
         Sale(
             _paymentToken,
@@ -23,8 +21,9 @@ contract SaleHarnessNoMerkle is Sale {
             _totalTokensForSale,
             _minTarget,
             _maxTarget,
-            _startRegistration,
-            _endRegistration
+            // TODO: registration range seems to be dead code
+            0, // startRegistration
+            1 // endRegistration
         )
     {}
 

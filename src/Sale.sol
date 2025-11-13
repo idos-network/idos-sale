@@ -426,7 +426,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
      * @dev Verifies a merkle proof.
      * declared as virtual to allow overriding for testing purposes
      */
-    function verifyLeaf(bytes32[] calldata _merkleProof, bytes32 _leaf) internal view virtual returns (bool) {
+    function verifyLeaf(bytes32[] calldata _merkleProof, bytes32 _leaf) public view virtual returns (bool) {
         return MerkleProof.verify(_merkleProof, merkleRoot, _leaf);
     }
 }

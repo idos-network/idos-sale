@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 
 import {Sale} from "src/Sale.sol";
-import {MockERC20} from "src/test/MockERC20.sol";
+import {MockERC20} from "test/harness/MockERC20.sol";
 import "forge-std/console.sol";
 
 contract SaleMaxTargetReachedTest is Test {
