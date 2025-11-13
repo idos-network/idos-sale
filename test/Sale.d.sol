@@ -5,6 +5,13 @@ import {TestSetup} from "./TestSetup.sol";
 
 contract SaleTest is TestSetup {
     function test_buy() public {
-        _setup();
+        setup();
+    }
+
+    function test_singleInvestor() public {
+        setup(100);
+        invest(address(0x1), 100);
+
+        assertRisingTideCap(100);
     }
 }
