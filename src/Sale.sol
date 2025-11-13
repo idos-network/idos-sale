@@ -38,7 +38,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     //
 
     /// Emitted for every public purchase
-    event Purchase(address indexed from, uint256 paymentTokenAmount, uint256 tokenAmount);
+    event Purchase(address indexed from, uint256 paymentTokenAmount);
 
     /// Emitted for every claim
     event Claim(address indexed to, uint256 tokenAmount);
@@ -195,25 +195,14 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         withdrawn = true;
 
         uint256 allocatedAmount = allocated();
-        uint256 paymentTokenAmount = tokenToPaymentToken(allocatedAmount);
 
-        emit Withdraw(msg.sender, paymentTokenAmount);
+        emit Withdraw(msg.sender, allocatedAmount);
 
-        IERC20(paymentToken).transfer(msg.sender, paymentTokenAmount);
+        IERC20(paymentToken).transfer(msg.sender, allocatedAmount);
     }
 
     /// @inheritdoc ISale
-    function paymentTokenToToken(uint256 _paymentAmount) public view override(ISale) returns (uint256) {
-        return (_paymentAmount * MUL) / rate;
-    }
-
-    /// @inheritdoc ISale
-    function tokenToPaymentToken(uint256 _tokenAmount) public view override(ISale) returns (uint256) {
-        return (_tokenAmount * rate) / MUL;
-    }
-
-    /// @inheritdoc ISale
-    function buy(uint256 _amount, bytes32[] calldata _merkleProof) external override(ISale) inSale nonReentrant {
+    function buy(uint256 _paymentAmount, bytes32[] calldata _merkleProof) external override(ISale) inSale nonReentrant {
         if (_investorCount >= maxTarget / minContribution) {
             revert MaxContributorsReached();
         }
@@ -222,10 +211,8 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         bool isValidLeaf = verifyLeaf(_merkleProof, leaf);
         if (!isValidLeaf) revert InvalidLeaf();
 
-        require(_amount >= paymentTokenToToken(minContribution), "can't be below minimum");
-
-        uint256 paymentAmount = tokenToPaymentToken(_amount);
-        require(paymentAmount > 0, "can't be zero");
+        require(_paymentAmount >= minContribution, "can't be below minimum");
+        require(_paymentAmount > 0, "can't be zero");
 
         uint256 currentAllocation = accounts[msg.sender].uncappedAllocation;
 
@@ -234,12 +221,12 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
             _investorCount++;
         }
 
-        accounts[msg.sender].uncappedAllocation += _amount;
-        totalUncappedAllocations += _amount;
+        accounts[msg.sender].uncappedAllocation += _paymentAmount;
+        totalUncappedAllocations += _paymentAmount;
 
-        emit Purchase(msg.sender, paymentAmount, _amount);
+        emit Purchase(msg.sender, _paymentAmount);
 
-        IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), paymentAmount);
+        IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), _paymentAmount);
     }
 
     /// @inheritdoc ISale
@@ -267,7 +254,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
             return 0;
         }
 
-        uint256 uncapped = tokenToPaymentToken(account.uncappedAllocation);
+        uint256 uncapped = account.uncappedAllocation;
         uint256 capped = allocation(to);
 
         return uncapped - capped;
@@ -279,28 +266,27 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
     /// @inheritdoc ISale
     function allocation(address _to) public view override(ISale) returns (uint256) {
-        if (tokenToPaymentToken(totalUncappedAllocations) < minTarget) {
+        if (totalUncappedAllocations < minTarget) {
             return 0;
         }
 
-        if (tokenToPaymentToken(totalUncappedAllocations) > maxTarget) {
-            return _applyCap(tokenToPaymentToken(uncappedAllocation(_to)));
+        if (totalUncappedAllocations > maxTarget) {
+            return _applyCap(uncappedAllocation(_to));
         }
 
-        return tokenToPaymentToken(uncappedAllocation(_to));
+        return uncappedAllocation(_to);
     }
 
     function currentTokenPrice() public view returns (uint256) {
-        if (tokenToPaymentToken(totalUncappedAllocations) < minTarget) {
+        if (totalUncappedAllocations < minTarget) {
             return minPrice;
         }
 
-        if (tokenToPaymentToken(totalUncappedAllocations) > maxTarget) {
+        if (totalUncappedAllocations > maxTarget) {
             return maxPrice;
         }
 
-        return minPrice + ((maxPrice - minPrice) * (tokenToPaymentToken(totalUncappedAllocations) - minTarget))
-            / (maxTarget - minTarget);
+        return minPrice + ((maxPrice - minPrice) * (totalUncappedAllocations - minTarget)) / (maxTarget - minTarget);
     }
 
     //
@@ -317,12 +303,12 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         address addr = investorByIndex[i];
         Account storage account = accounts[addr];
 
-        return tokenToPaymentToken(account.uncappedAllocation);
+        return account.uncappedAllocation;
     }
 
     /// @inheritdoc RisingTide
     function risingTide_totalAllocatedUncapped() public view override(RisingTide) returns (uint256) {
-        return tokenToPaymentToken(totalUncappedAllocations);
+        return totalUncappedAllocations;
     }
 
     /// @inheritdoc RisingTide
