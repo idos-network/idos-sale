@@ -5,6 +5,8 @@ import "forge-std/Test.sol";
 
 import {SaleHarnessNoMerkle} from "test/harness/Sale.sol";
 import {MockERC20} from "test/harness/MockERC20.sol";
+import {OffChainCalculator} from "src/RisingTide/OffChainCalculator.sol";
+import {RisingTide} from "src/RisingTide/RisingTide.sol";
 
 contract TestSetup is Test {
     struct Case {
@@ -17,11 +19,11 @@ contract TestSetup is Test {
     // deploys a token sale
     // TODO hardcoding sale target to [1$, 10_000_000$]
     // hardcoding tokens for sale to 1 ether, but shouldn't be a problem as all we care about are relative allocations
-    function _setup() internal {
-        _setup(1 ether);
+    function setup() internal {
+        setup(1 ether);
     }
 
-    function _setup(uint256 maxTarget) internal {
+    function setup(uint256 maxTarget) internal {
         uint256 start = vm.getBlockTimestamp();
         uint256 end = start + 24 hours;
 
@@ -48,15 +50,47 @@ contract TestSetup is Test {
         return amount * 1e18;
     }
 
-    function _endSale() internal {
+    function endSale() internal {
         vm.warp(c.sale.end() + 1000);
     }
 
-    function _invest(address addr, uint256 amount) internal {
+    function invest(address addr, uint256 amount) internal {
         vm.startPrank(addr);
         c.usdc.mint(addr, amount);
         c.usdc.approve(address(c.sale), amount);
         c.sale.buy(amount, new bytes32[](0));
         vm.stopPrank();
+    }
+
+    // optionally checks the cap against a given value
+    // run on-chain validation to ensure cap is validated
+    function assertRisingTideCap(uint256 expectedCap) internal {
+        // perform off-chain cap calculation
+        OffChainCalculator calculator = new OffChainCalculator();
+        uint256 cap = calculator.computeCap(c.sale);
+
+        // if provided, assert the cap is what we expect
+        if (expectedCap > 0) {
+            assertEq(cap, expectedCap);
+        }
+
+        // validate cap using on-chain logic
+        endSale();
+        c.sale.setIndividualCap(cap);
+        while (c.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
+            c.sale.risingTide_validate();
+        }
+        assert(c.sale.risingTide_isValidCap());
+    }
+
+    function applyDeposits(uint16[] memory amounts) internal {
+        for (uint160 i = 0; i < amounts.length; i++) {
+            if (amounts[i] == 0) {
+                continue;
+            }
+            console.log(string(abi.encode("amounts[", vm.toString(i), "] = ", vm.toString(amounts[i]), ";")));
+            address addr = address(i + 1);
+            invest(addr, amounts[i]);
+        }
     }
 }

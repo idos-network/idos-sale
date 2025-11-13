@@ -20,7 +20,9 @@ contract FuzzTests is TestSetup {
         amounts[8] = 800;
         amounts[9] = 1000;
 
-        _assertRisingTide(amounts, 5000, 542);
+        setup(5000);
+        applyDeposits(amounts);
+        assertRisingTideCap(542);
     }
 
     function test_edgeCase() public {
@@ -28,7 +30,9 @@ contract FuzzTests is TestSetup {
         amounts[0] = 10;
         amounts[1] = 100;
 
-        _assertRisingTide(amounts, 100, 90);
+        setup(100);
+        applyDeposits(amounts);
+        assertRisingTideCap(90);
     }
 
     function test_roundingErrors() public {
@@ -37,13 +41,17 @@ contract FuzzTests is TestSetup {
         amounts[1] = 100;
         amounts[2] = 100;
 
-        _assertRisingTide(amounts, 100, 33);
+        setup(100);
+        applyDeposits(amounts);
+        assertRisingTideCap(33);
     }
 
     function test_noInvestors() public {
         uint16[] memory amounts = new uint16[](0);
 
-        _assertRisingTide(amounts, 2, 0);
+        setup(2);
+        applyDeposits(amounts);
+        assertRisingTideCap(0);
     }
 
     /// forge-config: default.fuzz.runs = 1_000
@@ -53,42 +61,8 @@ contract FuzzTests is TestSetup {
         vm.assume(total > 1);
         vm.assume(total >= amounts.length); // TODO: since minContribution is 1, this ensures we never hit MaxContributorsReached
 
-        _assertRisingTide(amounts, total, 0);
-    }
-
-    // applies a list of deposits and a total amount, computes the final cap
-    // optionally checks the cap against a given value
-    // run on-chain validation to ensure cap is validated
-    function _assertRisingTide(uint16[] memory amounts, uint256 total, uint256 expectedCap) internal {
-        _setup(total);
-        _applyDeposits(amounts);
-
-        // perform off-chain cap calculation
-        OffChainCalculator calculator = new OffChainCalculator();
-        uint256 cap = calculator.computeCap(c.sale);
-
-        // if provided, assert the cap is what we expect
-        if (expectedCap > 0) {
-            assertEq(cap, expectedCap);
-        }
-
-        // validate cap using on-chain logic
-        vm.warp(c.sale.end() + 1);
-        c.sale.setIndividualCap(cap);
-        while (c.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
-            c.sale.risingTide_validate();
-        }
-        assert(c.sale.risingTide_isValidCap());
-    }
-
-    function _applyDeposits(uint16[] memory amounts) internal {
-        for (uint160 i = 0; i < amounts.length; i++) {
-            if (amounts[i] == 0) {
-                continue;
-            }
-            console.log(string(abi.encode("amounts[", vm.toString(i), "] = ", vm.toString(amounts[i]), ";")));
-            address addr = address(i + 1);
-            _invest(addr, amounts[i]);
-        }
+        setup(total);
+        applyDeposits(amounts);
+        assertRisingTideCap(0);
     }
 }
