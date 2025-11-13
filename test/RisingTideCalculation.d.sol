@@ -57,11 +57,9 @@ contract RisingTideCalculationTest is TestSetup {
     }
 
     function test_gitbook() public {
-        // Arrange
         sale.setMaxTarget(500_000);
         sale.setMinTarget(0);
 
-        // Create 10 mock investors
         address[10] memory investors = [
             makeAddr("inv1"),
             makeAddr("inv2"),
