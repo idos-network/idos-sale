@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import {RisingTide} from "./RisingTide.sol";
-import "forge-std/console.sol";
 
 contract OffChainCalculator {
     function computeCap(RisingTide r) external view returns (uint256) {
@@ -13,19 +12,14 @@ contract OffChainCalculator {
         uint256 investorsLeft = r.investorCount();
         uint256 accum = 0;
 
-        console.log("investorCount", investorCount);
-        console.log("available", available);
-        console.log("cap", cap);
         uint256[] memory amounts = new uint256[](investorCount);
         for (uint256 i = 0; i < investorCount; i++) {
             amounts[i] = r.investorAmountAt(i);
         }
         sort(amounts);
-        for (uint256 i = 0; i < investorCount; i++) {}
 
         while (true) {
             if (capNextIdx == investorCount) {
-                console.log("capNextIdx == investorCount");
                 return cap;
             }
 
@@ -44,6 +38,7 @@ contract OffChainCalculator {
     }
 
     function sort(uint256[] memory data) internal pure returns (uint256[] memory) {
+        if (data.length <= 1) return data;
         quickSort(data, int256(0), int256(data.length - 1));
         return data;
     }
