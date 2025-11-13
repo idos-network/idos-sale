@@ -14,36 +14,19 @@ contract TestRisingTideWithCustomAmounts is RisingTide {
         _maxTotalInvestment = __maxTotalInvestment;
     }
 
-    function investorCount()
-        public
-        view
-        override(RisingTide)
-        returns (uint256)
-    {
+    function investorCount() public view override(RisingTide) returns (uint256) {
         return totalInvestors;
     }
 
-    function investorAmountAt(
-        uint256 i
-    ) public view override(RisingTide) returns (uint256) {
+    function investorAmountAt(uint256 i) public view override(RisingTide) returns (uint256) {
         return investors[i];
     }
 
-    function risingTide_totalAllocatedUncapped()
-        public
-        view
-        override(RisingTide)
-        returns (uint256)
-    {
+    function risingTide_totalAllocatedUncapped() public view override(RisingTide) returns (uint256) {
         return _totalAllocatedUncapped;
     }
 
-    function risingTide_totalCap()
-        public
-        view
-        override(RisingTide)
-        returns (uint256)
-    {
+    function risingTide_totalCap() public view override(RisingTide) returns (uint256) {
         return _maxTotalInvestment;
     }
 
