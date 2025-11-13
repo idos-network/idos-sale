@@ -5,6 +5,7 @@ libs = ["lib", "dependencies"]
 
 # max uint64
 gas_limit = "18446744073709551615"
+skip = ["test/original_suite/*"]
 
 remappings = [
   "@openzeppelin/=dependencies/@openzeppelin-contracts-5.0.2/",

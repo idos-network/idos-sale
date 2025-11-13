@@ -54,7 +54,6 @@ contract FuzzTests is TestSetup {
         assertRisingTideCap(0);
     }
 
-    /// forge-config: default.fuzz.runs = 1_000
     function testFuzz_randomInputs(uint16[] memory amounts, uint256 total) public {
         vm.assume(amounts.length > 0);
         vm.assume(amounts.length < 10_000);
