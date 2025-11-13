@@ -27,7 +27,16 @@ contract SaleHarnessNoMerkle is Sale {
         )
     {}
 
-    function verifyLeaf(bytes32[] calldata _merkleProof, bytes32 _leaf) internal view override(Sale) returns (bool) {
+    function verifyLeaf(
+        bytes32[] calldata,
+        /* _merkleProof */
+        bytes32 /* _leaf */
+    )
+        internal
+        pure
+        override(Sale)
+        returns (bool)
+    {
         return true;
     }
 }
