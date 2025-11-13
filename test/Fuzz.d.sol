@@ -2,11 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/console.sol";
-import {TestSetup} from "../TestSetup.sol";
+import {TestSetup} from "./TestSetup.sol";
 import {OffChainCalculator} from "src/RisingTide/OffChainCalculator.sol";
 import {RisingTide} from "src/RisingTide/RisingTide.sol";
 
-contract OffChainCalculatorTest is TestSetup {
+contract FuzzTests is TestSetup {
     function test_computeCapWithGitbookExample() public {
         uint16[] memory amounts = new uint16[](10);
         amounts[0] = 500;
