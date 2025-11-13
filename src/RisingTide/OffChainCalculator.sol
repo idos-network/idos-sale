@@ -2,39 +2,39 @@
 pragma solidity ^0.8.20;
 
 import {RisingTide} from "./RisingTide.sol";
+import {Arrays} from "@openzeppelin/utils/Arrays.sol";
 
 contract OffChainCalculator {
+    using Arrays for uint256[];
+
     function computeCap(RisingTide r) external view returns (uint256) {
         uint256 available = r.risingTide_totalCap();
-        uint256 cap = 0;
-        uint256 capNextIdx = 0;
         uint256 investorCount = r.investorCount();
         uint256 investorsLeft = r.investorCount();
         uint256 accum = 0;
+        require(investorCount > 0, "No investors");
 
         uint256[] memory amounts = new uint256[](investorCount);
         for (uint256 i = 0; i < investorCount; i++) {
             amounts[i] = r.investorAmountAt(i);
         }
-        sort(amounts);
+        amounts.sort();
 
-        while (true) {
-            if (capNextIdx == investorCount) {
-                return cap;
+        for (uint256 idx = 0; idx < amounts.length; idx++) {
+            uint256 amount = amounts[idx];
+            uint256 hypothetical = amount * investorsLeft;
+
+            if (hypothetical > (available - accum)) {
+                // Cap exceeded — compute precise cutoff
+                return (available - accum) / investorsLeft;
             }
 
-            cap = amounts[capNextIdx];
-            uint256 hypothetical = cap * investorsLeft;
-
-            if (hypothetical > available - accum) {
-                break;
-            }
-            accum = accum + cap;
-            capNextIdx++;
+            accum += amount;
             investorsLeft--;
         }
 
-        return (available - accum) / investorsLeft;
+        // If never exceeded, highest allocation is the cap
+        return amounts[amounts.length - 1];
     }
 
     function sort(uint256[] memory data) internal pure returns (uint256[] memory) {
