@@ -14,6 +14,18 @@ contract TestSetup is Test {
         MockERC20 usdc;
     }
 
+    struct Investor {
+        address addr;
+        uint256 amount;
+    }
+
+    struct Case {
+        uint256 maxTarget;
+        int256 cap; // negative means we don't know
+        Investor[] investors;
+        uint256 computedCap; // filled in by the test runner
+    }
+
     TestSetup.Ctx public ctx;
 
     // deploys a token sale
@@ -54,7 +66,14 @@ contract TestSetup is Test {
         vm.warp(ctx.sale.end() + 1000);
     }
 
-    function invest(address addr, uint256 amount) internal {
+    function assertFullCase(Case memory c) internal {
+        setup(c.maxTarget);
+        applyDeposits(c.investors);
+        c.computedCap = assertRisingTideCap(c.cap);
+        assertRefunds(c);
+    }
+
+    function invest(address addr, uint256 amount) private {
         vm.startPrank(addr);
         ctx.usdc.mint(addr, amount);
         ctx.usdc.approve(address(ctx.sale), amount);
@@ -64,14 +83,14 @@ contract TestSetup is Test {
 
     // optionally checks the cap against a given value
     // run on-chain validation to ensure cap is validated
-    function assertRisingTideCap(uint256 expectedCap) internal {
+    function assertRisingTideCap(int256 expectedCap) private returns (uint256) {
         // perform off-chain cap calculation
         OffChainCalculator calculator = new OffChainCalculator();
         uint256 cap = calculator.computeCap(ctx.sale);
 
         // if provided, assert the cap is what we expect
-        if (expectedCap > 0) {
-            assertEq(cap, expectedCap);
+        if (expectedCap >= 0) {
+            assertEq(cap, uint256(expectedCap));
         }
 
         // validate cap using on-chain logic
@@ -81,20 +100,36 @@ contract TestSetup is Test {
             ctx.sale.risingTide_validate();
         }
         assert(ctx.sale.risingTide_isValidCap());
+        return cap;
     }
 
-    function applyDeposits(uint16[] memory amounts) internal {
+    function applyDeposits(uint16[] memory amounts) private {
         for (uint160 i = 0; i < amounts.length; i++) {
             if (amounts[i] == 0) {
                 continue;
             }
-            console.log(string(abi.encode("amounts[", vm.toString(i), "] = ", vm.toString(amounts[i]), ";")));
             address addr = address(i + 1);
             invest(addr, amounts[i]);
         }
     }
 
-    function assertRefund(address addr, uint256 amount) internal {
-        assertEq(ctx.sale.refundAmount(addr), amount);
+    function applyDeposits(Investor[] memory investors) private {
+        for (uint160 i = 0; i < investors.length; i++) {
+            if (investors[i].amount == 0) {
+                continue;
+            }
+            invest(investors[i].addr, investors[i].amount);
+        }
+    }
+
+    function assertRefunds(Case memory c) private view {
+        for (uint160 i = 0; i < c.investors.length; i++) {
+            if (c.investors[i].amount == 0) {
+                continue;
+            }
+            uint256 uncapped = c.investors[i].amount;
+            uint256 capped = uncapped > c.computedCap ? c.computedCap : uncapped;
+            assertEq(ctx.sale.refundAmount(c.investors[i].addr), uncapped - capped);
+        }
     }
 }

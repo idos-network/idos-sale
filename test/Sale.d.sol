@@ -9,36 +9,27 @@ contract SaleTest is TestSetup {
     }
 
     function test_singleInvestor() public {
-        setup(100);
-        invest(address(0x1), 100);
-
-        assertRisingTideCap(100);
-        assertRefund(address(0x1), 0);
+        Case memory c = Case({maxTarget: 100, cap: 100, investors: new Investor[](1), computedCap: 0});
+        c.investors[0] = Investor({addr: makeAddr("inv1"), amount: 100});
+        assertFullCase(c);
     }
 
     function test_twoEqualInvestorsExactMaxTarget() public {
-        setup(200);
-        invest(address(0x1), 100);
-        invest(address(0x2), 100);
-
-        assertRisingTideCap(100);
-        assertRefund(address(0x1), 0);
-        assertRefund(address(0x2), 0);
+        Case memory c = Case({maxTarget: 200, cap: 100, investors: new Investor[](2), computedCap: 0});
+        c.investors[0] = Investor({addr: makeAddr("inv1"), amount: 100});
+        c.investors[1] = Investor({addr: makeAddr("inv2"), amount: 100});
+        assertFullCase(c);
     }
 
     function test_twoEqualInvestorsOverMaxTarget() public {
-        setup(200);
-        invest(address(0x1), 101);
-        invest(address(0x2), 100);
-
-        assertRisingTideCap(100);
-        assertRefund(address(0x1), 1);
-        assertRefund(address(0x2), 0);
+        Case memory c = Case({maxTarget: 200, cap: 100, investors: new Investor[](2), computedCap: 0});
+        c.investors[0] = Investor({addr: makeAddr("inv1"), amount: 101});
+        c.investors[1] = Investor({addr: makeAddr("inv2"), amount: 100});
+        assertFullCase(c);
     }
 
     function test_noInvestors() public {
-        setup(2);
-        endSale();
-        assertRisingTideCap(0);
+        Case memory c = Case({maxTarget: 2, cap: 0, investors: new Investor[](0), computedCap: 0});
+        assertFullCase(c);
     }
 }
