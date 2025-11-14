@@ -21,46 +21,46 @@ contract OffChaincalculatorTest is TestSetup {
 
         uint256 start = vm.getBlockTimestamp();
         uint256 end = start + 24 hours;
-        c.sale = new SaleHarnessNoMerkle(address(c.usdc), 1 * 1e6, start, end, 100 ether, 5 * 1e6, 100 * 1e6);
+        ctx.sale = new SaleHarnessNoMerkle(address(ctx.usdc), 1 * 1e6, start, end, 100 ether, 5 * 1e6, 100 * 1e6);
 
-        c.sale.setMinContribution(1);
+        ctx.sale.setMinContribution(1);
 
         alice = makeAddr("alice");
         bob = makeAddr("bob");
 
         vm.startPrank(alice);
-        c.usdc.mint(address(alice), 1e8 ether);
-        c.usdc.approve(address(c.sale), 1e8 ether);
+        ctx.usdc.mint(address(alice), 1e8 ether);
+        ctx.usdc.approve(address(ctx.sale), 1e8 ether);
         vm.stopPrank();
 
         vm.startPrank(bob);
-        c.usdc.mint(address(bob), 1e8 ether);
-        c.usdc.approve(address(c.sale), 1e8 ether);
+        ctx.usdc.mint(address(bob), 1e8 ether);
+        ctx.usdc.approve(address(ctx.sale), 1e8 ether);
         vm.stopPrank();
     }
 
     function test_case1() public {
-        c.sale.setMinTarget(1 * 1e6);
-        c.sale.setMaxTarget(100 * 1e6);
+        ctx.sale.setMinTarget(1 * 1e6);
+        ctx.sale.setMaxTarget(100 * 1e6);
 
         vm.startPrank(alice);
-        c.sale.buy(c.sale.paymentTokenToToken(10 * 1e6), proof);
+        ctx.sale.buy(ctx.sale.paymentTokenToToken(10 * 1e6), proof);
         vm.stopPrank();
 
         vm.startPrank(bob);
-        c.sale.buy(c.sale.paymentTokenToToken(100 * 1e6), proof);
+        ctx.sale.buy(ctx.sale.paymentTokenToToken(100 * 1e6), proof);
         vm.stopPrank();
 
-        vm.warp(c.sale.end() + duration);
+        vm.warp(ctx.sale.end() + duration);
 
-        uint256 cap = calculator.computeCap(c.sale);
+        uint256 cap = calculator.computeCap(ctx.sale);
 
         assertEq(cap, 90 * 1e6);
     }
 
     function test_gitbook() public {
-        c.sale.setMaxTarget(500_000);
-        c.sale.setMinTarget(0);
+        ctx.sale.setMaxTarget(500_000);
+        ctx.sale.setMinTarget(0);
 
         address[10] memory investors = [
             makeAddr("inv1"),
@@ -80,24 +80,24 @@ contract OffChaincalculatorTest is TestSetup {
 
         for (uint256 i = 0; i < investors.length; i++) {
             address investor = investors[i];
-            c.usdc.mint(investor, 1e9 ether);
+            ctx.usdc.mint(investor, 1e9 ether);
             vm.startPrank(investor);
-            c.usdc.approve(address(c.sale), type(uint256).max);
-            c.sale.buy(c.sale.paymentTokenToToken(contributions[i]), proof);
+            ctx.usdc.approve(address(ctx.sale), type(uint256).max);
+            ctx.sale.buy(ctx.sale.paymentTokenToToken(contributions[i]), proof);
             vm.stopPrank();
         }
 
-        vm.warp(c.sale.end() + duration);
+        vm.warp(ctx.sale.end() + duration);
 
-        uint256 cap = calculator.computeCap(c.sale);
+        uint256 cap = calculator.computeCap(ctx.sale);
 
         assertEq(cap, 54285);
     }
 
     function test_gitbook_small() public {
         // Arrange
-        c.sale.setMaxTarget(500_000);
-        c.sale.setMinTarget(0);
+        ctx.sale.setMaxTarget(500_000);
+        ctx.sale.setMinTarget(0);
 
         // Create 10 mock investors
         address[1] memory investors = [makeAddr("inv1")];
@@ -106,24 +106,24 @@ contract OffChaincalculatorTest is TestSetup {
 
         for (uint256 i = 0; i < investors.length; i++) {
             address investor = investors[i];
-            c.usdc.mint(investor, 1e9 ether);
+            ctx.usdc.mint(investor, 1e9 ether);
             vm.startPrank(investor);
-            c.usdc.approve(address(c.sale), type(uint256).max);
-            c.sale.buy(c.sale.paymentTokenToToken(contributions[i]), proof);
+            ctx.usdc.approve(address(ctx.sale), type(uint256).max);
+            ctx.sale.buy(ctx.sale.paymentTokenToToken(contributions[i]), proof);
             vm.stopPrank();
         }
 
-        vm.warp(c.sale.end() + duration);
+        vm.warp(ctx.sale.end() + duration);
 
-        uint256 cap = calculator.computeCap(c.sale);
+        uint256 cap = calculator.computeCap(ctx.sale);
 
         assertEq(cap, contributions[0]);
     }
 
     function test_realPrice() public {
         // Arrange
-        c.sale.setMaxTarget(1 * 1e18);
-        c.sale.setMinTarget(0);
+        ctx.sale.setMaxTarget(1 * 1e18);
+        ctx.sale.setMinTarget(0);
 
         // Create 10 mock investors
         address[3] memory investors = [makeAddr("inv1"), makeAddr("inv2"), makeAddr("inv3")];
@@ -132,16 +132,16 @@ contract OffChaincalculatorTest is TestSetup {
 
         for (uint256 i = 0; i < investors.length; i++) {
             address investor = investors[i];
-            c.usdc.mint(investor, 1e9 ether);
+            ctx.usdc.mint(investor, 1e9 ether);
             vm.startPrank(investor);
-            c.usdc.approve(address(c.sale), type(uint256).max);
-            c.sale.buy(c.sale.paymentTokenToToken(contributions[i]), proof);
+            ctx.usdc.approve(address(ctx.sale), type(uint256).max);
+            ctx.sale.buy(ctx.sale.paymentTokenToToken(contributions[i]), proof);
             vm.stopPrank();
         }
 
-        vm.warp(c.sale.end() + duration);
+        vm.warp(ctx.sale.end() + duration);
 
-        uint256 cap = calculator.computeCap(c.sale);
+        uint256 cap = calculator.computeCap(ctx.sale);
 
         assertEq(cap, 333333333333333333);
     }

@@ -9,12 +9,12 @@ import {OffChainCalculator} from "src/RisingTide/OffChainCalculator.sol";
 import {RisingTide} from "src/RisingTide/RisingTide.sol";
 
 contract TestSetup is Test {
-    struct Case {
+    struct Ctx {
         SaleHarnessNoMerkle sale;
         MockERC20 usdc;
     }
 
-    TestSetup.Case public c;
+    TestSetup.Ctx public ctx;
 
     // deploys a token sale
     // TODO hardcoding sale target to [1$, 10_000_000$]
@@ -27,9 +27,9 @@ contract TestSetup is Test {
         uint256 start = vm.getBlockTimestamp();
         uint256 end = start + 24 hours;
 
-        c.usdc = new MockERC20("USDC", "USDC", 6);
-        c.sale = new SaleHarnessNoMerkle(
-            address(c.usdc), // paymentToken
+        ctx.usdc = new MockERC20("USDC", "USDC", 6);
+        ctx.sale = new SaleHarnessNoMerkle(
+            address(ctx.usdc), // paymentToken
             1 ether, // rate TODO: set to 1 for now to get it out of the way
             start, // start timestamp
             end, // end timestamp
@@ -39,7 +39,7 @@ contract TestSetup is Test {
         );
 
         // TODO: min contribution set to minimum non-zero possible, just to get it out of the way for now
-        c.sale.setMinContribution(1);
+        ctx.sale.setMinContribution(1);
     }
 
     function usdc(uint256 amount) internal pure returns (uint256) {
@@ -51,14 +51,14 @@ contract TestSetup is Test {
     }
 
     function endSale() internal {
-        vm.warp(c.sale.end() + 1000);
+        vm.warp(ctx.sale.end() + 1000);
     }
 
     function invest(address addr, uint256 amount) internal {
         vm.startPrank(addr);
-        c.usdc.mint(addr, amount);
-        c.usdc.approve(address(c.sale), amount);
-        c.sale.buy(amount, new bytes32[](0));
+        ctx.usdc.mint(addr, amount);
+        ctx.usdc.approve(address(ctx.sale), amount);
+        ctx.sale.buy(amount, new bytes32[](0));
         vm.stopPrank();
     }
 
@@ -67,7 +67,7 @@ contract TestSetup is Test {
     function assertRisingTideCap(uint256 expectedCap) internal {
         // perform off-chain cap calculation
         OffChainCalculator calculator = new OffChainCalculator();
-        uint256 cap = calculator.computeCap(c.sale);
+        uint256 cap = calculator.computeCap(ctx.sale);
 
         // if provided, assert the cap is what we expect
         if (expectedCap > 0) {
@@ -76,11 +76,11 @@ contract TestSetup is Test {
 
         // validate cap using on-chain logic
         endSale();
-        c.sale.setIndividualCap(cap);
-        while (c.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
-            c.sale.risingTide_validate();
+        ctx.sale.setIndividualCap(cap);
+        while (ctx.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
+            ctx.sale.risingTide_validate();
         }
-        assert(c.sale.risingTide_isValidCap());
+        assert(ctx.sale.risingTide_isValidCap());
     }
 
     function applyDeposits(uint16[] memory amounts) internal {
@@ -95,6 +95,6 @@ contract TestSetup is Test {
     }
 
     function assertRefund(address addr, uint256 amount) internal {
-        assertEq(c.sale.refundAmount(addr), amount);
+        assertEq(ctx.sale.refundAmount(addr), amount);
     }
 }
