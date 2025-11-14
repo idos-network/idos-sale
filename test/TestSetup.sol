@@ -93,4 +93,8 @@ contract TestSetup is Test {
             invest(addr, amounts[i]);
         }
     }
+
+    function assertRefund(address addr, uint256 amount) internal {
+        assertEq(c.sale.refundAmount(addr), amount);
+    }
 }

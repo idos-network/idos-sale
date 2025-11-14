@@ -13,6 +13,17 @@ contract SaleTest is TestSetup {
         invest(address(0x1), 100);
 
         assertRisingTideCap(100);
+        assertRefund(address(0x1), 0);
+    }
+
+    function test_twoEqualInvestors() public {
+        setup(100);
+        invest(address(0x1), 100);
+        invest(address(0x2), 100);
+
+        assertRisingTideCap(50);
+        assertRefund(address(0x1), 0);
+        assertRefund(address(0x2), 0);
     }
 
     function test_noInvestors() public {
