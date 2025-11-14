@@ -8,6 +8,9 @@ import {MockERC20} from "test/harness/MockERC20.sol";
 import {OffChainCalculator} from "src/RisingTide/OffChainCalculator.sol";
 import {RisingTide} from "src/RisingTide/RisingTide.sol";
 
+import {OffChainCalculator} from "src/RisingTide/OffChainCalculator.sol";
+import {RisingTide} from "src/RisingTide/RisingTide.sol";
+
 contract TestSetup is Test {
     struct Ctx {
         SaleHarnessNoMerkle sale;
@@ -23,6 +26,8 @@ contract TestSetup is Test {
     }
 
     TestSetup.Ctx public ctx;
+    uint256 start;
+    uint256 end;
 
     // deploys a token sale
     // TODO hardcoding sale target to [1$, 10_000_000$]
@@ -32,8 +37,8 @@ contract TestSetup is Test {
     }
 
     function setup(uint256 maxTarget) internal {
-        uint256 start = vm.getBlockTimestamp();
-        uint256 end = start + 24 hours;
+        start = vm.getBlockTimestamp();
+        end = start + 24 hours;
 
         ctx.usdc = new MockERC20("USDC", "USDC", 6);
         ctx.sale = new SaleHarnessNoMerkle(
@@ -69,7 +74,7 @@ contract TestSetup is Test {
         assertRefunds(c);
     }
 
-    function invest(address addr, uint256 amount) private {
+    function invest(address addr, uint256 amount) internal {
         vm.startPrank(addr);
         ctx.usdc.mint(addr, amount);
         ctx.usdc.approve(address(ctx.sale), amount);
@@ -127,5 +132,24 @@ contract TestSetup is Test {
             uint256 capped = uncapped > c.computedCap ? c.computedCap : uncapped;
             assertEq(ctx.sale.refundAmount(address(i + 1)), uncapped - capped);
         }
+    }
+
+    function mintUsdc(address addr, uint256 amount) internal {
+        vm.startPrank(addr);
+        ctx.usdc.mint(addr, amount);
+        ctx.usdc.approve(address(ctx.sale), amount);
+        vm.stopPrank();
+    }
+
+    function setCap() internal returns (uint256) {
+        OffChainCalculator calculator = new OffChainCalculator();
+        uint256 cap = calculator.computeCap(ctx.sale);
+        ctx.sale.setIndividualCap(cap);
+        while (ctx.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
+            ctx.sale.risingTide_validate();
+        }
+        assert(ctx.sale.risingTide_isValidCap());
+
+        return cap;
     }
 }
