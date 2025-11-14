@@ -1017,7 +1017,8 @@ contract Scenario1Test is TestSetup {
             cap: 2_765_000_000,
             capMaxDelta: 1_000_000,
             investors: _buildInvestors1(),
-            computedCap: 0
+            computedCap: 0,
+            alreadySorted: false
         });
         uint256 sum = 0;
         for (uint256 i = 0; i < c.investors.length; i++) {

@@ -26,6 +26,7 @@ contract OffChainCalculator {
         for (uint256 i = 0; i < investorCount; i++) {
             amounts[i] = r.investorAmountAt(i);
         }
+
         if (!alreadySorted) {
             amounts.sort();
         }

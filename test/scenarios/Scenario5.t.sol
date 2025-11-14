@@ -1017,7 +1017,8 @@ contract Scenario5Test is TestSetup {
             cap: 400_927_000_000,
             capMaxDelta: 1_000_000,
             investors: _buildInvestors5(),
-            computedCap: 0
+            computedCap: 0,
+            alreadySorted: false
         });
         assertFullCase(c);
     }

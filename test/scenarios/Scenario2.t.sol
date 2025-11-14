@@ -516,7 +516,8 @@ contract Scenario2Test is TestSetup {
             cap: 4_000_000_000,
             capMaxDelta: 1_000_000,
             investors: _buildInvestors2(),
-            computedCap: 0
+            computedCap: 0,
+            alreadySorted: false
         });
         assertFullCase(c);
     }
