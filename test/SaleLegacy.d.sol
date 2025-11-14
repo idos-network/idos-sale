@@ -226,7 +226,7 @@ contract SaleLegacyTest is TestSetup {
         uint256 ownerBalanceAfter = ctx.usdc.balanceOf(address(this));
         //TODO: error : value withdraw not correct
         //allocated function is not correct
-        //assertEq(ownerBalanceAfter - ownerBalanceBefore, (amount * 2) - aliceRefund - bobRefund);
+        assertEq(ownerBalanceAfter - ownerBalanceBefore, (amount * 2) - aliceRefund - bobRefund);
     }
 
     function test_SetIndividualCap() public {
