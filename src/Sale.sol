@@ -397,7 +397,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
     /// @return the amount of tokens already allocated
     function allocated() public view returns (uint256) {
-        return Math.min(totalUncappedAllocations, totalTokensForSale);
+        return Math.min(totalUncappedAllocations, maxTarget);
     }
 
     //
