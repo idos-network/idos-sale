@@ -134,14 +134,14 @@ contract TestSetup is Test {
         }
     }
 
-    function _mintUsdc(address addr, uint256 amount) internal {
+    function mintUsdc(address addr, uint256 amount) internal {
         vm.startPrank(addr);
         c.usdc.mint(addr, amount);
         c.usdc.approve(address(c.sale), amount);
         vm.stopPrank();
     }
 
-    function _setCap() internal returns (uint256) {
+    function setCap() internal returns (uint256) {
         OffChainCalculator calculator = new OffChainCalculator();
         uint256 cap = calculator.computeCap(c.sale);
         c.sale.setIndividualCap(cap);

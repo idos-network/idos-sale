@@ -9,7 +9,7 @@ import {TestSetup} from "test/TestSetup.sol";
 
 import {RisingTide} from "src/RisingTide/RisingTide.sol";
 
-contract SaleTest is TestSetup {
+contract SaleLegacyTest is TestSetup {
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
 
@@ -21,7 +21,7 @@ contract SaleTest is TestSetup {
     event Refund(address indexed to, uint256 paymentTokenAmount);
 
     function setUp() public {
-        _setup();
+        setup();
     }
 
     function test_BuyUSC() public {
@@ -56,7 +56,7 @@ contract SaleTest is TestSetup {
         uint256 mintAmount = usdc(100);
         uint256 buyAmount = usdc(1);
 
-        _mintUsdc(alice, mintAmount);
+        mintUsdc(alice, mintAmount);
 
         vm.startPrank(alice);
 
@@ -81,7 +81,7 @@ contract SaleTest is TestSetup {
         uint256 mintAmount = usdc(100);
         uint256 buyAmount = usdc(1);
 
-        _mintUsdc(alice, mintAmount);
+        mintUsdc(alice, mintAmount);
 
         vm.startPrank(alice);
 
@@ -121,7 +121,7 @@ contract SaleTest is TestSetup {
         uint256 mintAmount = 10 ether;
         uint256 buyAmount = 5 ether;
 
-        _mintUsdc(alice, mintAmount);
+        mintUsdc(alice, mintAmount);
 
         c.sale.setMinContribution(usdc(1));
         c.sale.setMaxTarget(usdc(1));
@@ -153,7 +153,7 @@ contract SaleTest is TestSetup {
         uint256 mintAmount = usdc(2);
         uint256 buyAmount = usdc(2);
 
-        _mintUsdc(alice, mintAmount);
+        mintUsdc(alice, mintAmount);
 
         vm.startPrank(alice);
         c.sale.buy(buyAmount, proof);
@@ -173,7 +173,7 @@ contract SaleTest is TestSetup {
         uint256 mintAmount = usdc(2);
         uint256 buyAmount = usdc(2);
 
-        _mintUsdc(alice, mintAmount);
+        mintUsdc(alice, mintAmount);
 
         vm.startPrank(alice);
         c.sale.buy(buyAmount, proof);
@@ -199,13 +199,13 @@ contract SaleTest is TestSetup {
 
         c.sale.setMaxTarget(amount);
 
-        _invest(alice, amount);
+        invest(alice, amount);
 
-        _invest(bob, amount);
+        invest(bob, amount);
 
         vm.warp(c.sale.end() + 1000);
 
-        uint256 cap = _setCap();
+        uint256 cap = setCap();
 
         uint256 aliceAllocation = c.sale.allocation(alice);
         uint256 aliceRefund = c.sale.refundAmount(alice);
@@ -232,7 +232,7 @@ contract SaleTest is TestSetup {
     function test_SetIndividualCap() public {
         uint256 amount = usdc(1);
 
-        _invest(alice, amount);
+        invest(alice, amount);
 
         vm.warp(c.sale.end() + 1000);
 
@@ -242,7 +242,7 @@ contract SaleTest is TestSetup {
     }
 
     function test_SetIndividualCapFailsValidateForWrongValue() public {
-        _invest(alice, 2 ether);
+        invest(alice, 2 ether);
 
         vm.warp(c.sale.end() + 1000);
 
@@ -258,12 +258,12 @@ contract SaleTest is TestSetup {
     function test_RefundAmountIsZeroIfAlreadyRefunded() public {
         c.sale.setMaxTarget(usdc(2));
 
-        _invest(alice, usdc(2));
-        _invest(bob, usdc(2));
+        invest(alice, usdc(2));
+        invest(bob, usdc(2));
 
         vm.warp(c.sale.end() + 1000);
 
-        _setCap();
+        setCap();
 
         assertEq(c.sale.refundAmount(alice), usdc(1));
 
@@ -276,8 +276,8 @@ contract SaleTest is TestSetup {
     function test_RefundAmountIsZeroIfIndividualCapIsHigherThanInvestedTotal() public {
         c.sale.setMaxTarget(usdc(10));
 
-        _invest(alice, usdc(1));
-        _invest(bob, usdc(9));
+        invest(alice, usdc(1));
+        invest(bob, usdc(9));
 
         vm.warp(c.sale.end() + 1000);
 
@@ -287,10 +287,10 @@ contract SaleTest is TestSetup {
     function test_RefundReturnsCorrectAmmount() public {
         c.sale.setMaxTarget(usdc(4));
 
-        _invest(alice, usdc(4));
-        _invest(bob, usdc(4));
+        invest(alice, usdc(4));
+        invest(bob, usdc(4));
 
-        _endSale();
+        endSale();
 
         c.sale.setIndividualCap(usdc(2));
 
@@ -317,7 +317,7 @@ contract SaleTest is TestSetup {
     }
 
     function test_RefundRevertsWhenCapIsNotSet() public {
-        _invest(alice, usdc(4));
+        invest(alice, usdc(4));
 
         vm.expectRevert(bytes("cap not yet set"));
         c.sale.refund(alice);
@@ -326,12 +326,12 @@ contract SaleTest is TestSetup {
     function test_RefundRevertsIfDoubleRefund() public {
         c.sale.setMaxTarget(usdc(4));
 
-        _invest(alice, usdc(4));
-        _invest(bob, usdc(4));
+        invest(alice, usdc(4));
+        invest(bob, usdc(4));
 
-        _endSale();
+        endSale();
 
-        _setCap();
+        setCap();
 
         vm.startPrank(alice);
         c.sale.refund(alice);
@@ -343,11 +343,11 @@ contract SaleTest is TestSetup {
     function test_AllocationIsZeroIfNotMinTargetReached() public {
         c.sale.setMinTarget(100 ether);
 
-        _invest(alice, usdc(1));
+        invest(alice, usdc(1));
 
-        _endSale();
+        endSale();
 
-        _setCap();
+        setCap();
 
         assertEq(c.sale.allocation(alice), 0);
         assertEq(c.sale.refundAmount(alice), usdc(1));
@@ -357,9 +357,9 @@ contract SaleTest is TestSetup {
         c.sale.setMinTarget(usdc(5));
         c.sale.setMaxTarget(usdc(10));
 
-        _invest(alice, usdc(6));
+        invest(alice, usdc(6));
 
-        _endSale();
+        endSale();
 
         assertEq(c.sale.allocation(alice), c.sale.paymentTokenToToken(usdc(6)));
     }
@@ -370,7 +370,7 @@ contract SaleTest is TestSetup {
         c.sale.setMinTarget(5 * 1e6);
         c.sale.setMaxTarget(10 * 1e6);
 
-        _invest(alice, 7.5 * 1e6);
+        invest(alice, 7.5 * 1e6);
 
         assertEq(c.sale.currentTokenPrice(), 0.01 * 1e6);
     }
