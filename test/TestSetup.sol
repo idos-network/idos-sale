@@ -74,7 +74,7 @@ contract TestSetup is Test {
         assertRefunds(c);
     }
 
-    function invest(address addr, uint256 amount) private {
+    function invest(address addr, uint256 amount) internal {
         vm.startPrank(addr);
         ctx.usdc.mint(addr, amount);
         ctx.usdc.approve(address(ctx.sale), amount);
@@ -136,19 +136,19 @@ contract TestSetup is Test {
 
     function mintUsdc(address addr, uint256 amount) internal {
         vm.startPrank(addr);
-        c.usdc.mint(addr, amount);
-        c.usdc.approve(address(c.sale), amount);
+        ctx.usdc.mint(addr, amount);
+        ctx.usdc.approve(address(ctx.sale), amount);
         vm.stopPrank();
     }
 
     function setCap() internal returns (uint256) {
         OffChainCalculator calculator = new OffChainCalculator();
-        uint256 cap = calculator.computeCap(c.sale);
-        c.sale.setIndividualCap(cap);
-        while (c.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
-            c.sale.risingTide_validate();
+        uint256 cap = calculator.computeCap(ctx.sale);
+        ctx.sale.setIndividualCap(cap);
+        while (ctx.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
+            ctx.sale.risingTide_validate();
         }
-        assert(c.sale.risingTide_isValidCap());
+        assert(ctx.sale.risingTide_isValidCap());
 
         return cap;
     }

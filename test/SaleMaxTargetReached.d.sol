@@ -22,7 +22,7 @@ contract SaleMaxTargetReachedTest is TestSetup {
     }
 
     function test_AllocationAfterMaxTargetReached() public {
-        uint256 maxTarget = c.sale.maxTarget();
+        uint256 maxTarget = ctx.sale.maxTarget();
 
         invest(alice, maxTarget);
         invest(bob, maxTarget);
@@ -31,8 +31,8 @@ contract SaleMaxTargetReachedTest is TestSetup {
 
         setCap();
 
-        assertEq(c.sale.risingTide_isValidCap(), true);
-        assertEq(c.sale.allocation(address(alice)), maxTarget / 2);
-        assertEq(c.sale.allocation(address(bob)), maxTarget / 2);
+        assertEq(ctx.sale.risingTide_isValidCap(), true);
+        assertEq(ctx.sale.allocation(address(alice)), maxTarget / 2);
+        assertEq(ctx.sale.allocation(address(bob)), maxTarget / 2);
     }
 }

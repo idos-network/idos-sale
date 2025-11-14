@@ -21,8 +21,8 @@ contract SaleMinTargetNotReachedTest is TestSetup {
     }
 
     function test_AllocationWhenMinTargetReached() public {
-        c.sale.setMinTarget(usdc(5));
-        c.sale.setMaxTarget(usdc(10));
+        ctx.sale.setMinTarget(usdc(5));
+        ctx.sale.setMaxTarget(usdc(10));
 
         uint256 aliceAmount = usdc(3);
         uint256 bobAmount1 = usdc(2);
@@ -34,46 +34,48 @@ contract SaleMinTargetNotReachedTest is TestSetup {
 
         endSale();
 
-        assertEq(c.usdc.balanceOf(address(c.sale)), usdc(7));
-        assertEq(c.sale.totalUncappedAllocations(), c.sale.paymentTokenToToken(aliceAmount + bobAmount1 + bobAmount2));
-        assertEq(c.sale.allocation(address(alice)), aliceAmount);
-        assertEq(c.sale.allocation(address(bob)), bobAmount1 + bobAmount2);
+        assertEq(ctx.usdc.balanceOf(address(ctx.sale)), usdc(7));
+        assertEq(
+            ctx.sale.totalUncappedAllocations(), ctx.sale.paymentTokenToToken(aliceAmount + bobAmount1 + bobAmount2)
+        );
+        assertEq(ctx.sale.allocation(address(alice)), aliceAmount);
+        assertEq(ctx.sale.allocation(address(bob)), bobAmount1 + bobAmount2);
     }
 
     function test_RefundsWhenMinTargetNotReached() public {
-        c.sale.setMinTarget(1 ether);
+        ctx.sale.setMinTarget(1 ether);
 
-        uint256 amount = (c.sale.minTarget() / 2) - (usdc(1));
+        uint256 amount = (ctx.sale.minTarget() / 2) - (usdc(1));
 
         invest(alice, amount);
 
-        assertEq(c.usdc.balanceOf(address(c.sale)), amount);
+        assertEq(ctx.usdc.balanceOf(address(ctx.sale)), amount);
 
         invest(bob, amount);
 
-        assertEq(c.sale.totalUncappedAllocations(), amount * 2);
-        assert(c.sale.totalUncappedAllocations() < c.sale.paymentTokenToToken(c.sale.minTarget()));
+        assertEq(ctx.sale.totalUncappedAllocations(), amount * 2);
+        assert(ctx.sale.totalUncappedAllocations() < ctx.sale.paymentTokenToToken(ctx.sale.minTarget()));
 
         endSale();
 
-        assertEq(c.usdc.balanceOf(address(c.sale)), amount * 2);
+        assertEq(ctx.usdc.balanceOf(address(ctx.sale)), amount * 2);
 
         setCap();
 
-        assertEq(c.sale.allocation(alice), 0);
-        assertEq(c.sale.refundAmount(alice), amount);
+        assertEq(ctx.sale.allocation(alice), 0);
+        assertEq(ctx.sale.refundAmount(alice), amount);
 
         vm.prank(alice);
-        c.sale.refund(alice);
+        ctx.sale.refund(alice);
 
-        assertEq(c.usdc.balanceOf(address(c.sale)), amount);
+        assertEq(ctx.usdc.balanceOf(address(ctx.sale)), amount);
 
-        assertEq(c.sale.allocation(bob), 0);
-        assertEq(c.sale.refundAmount(bob), amount);
+        assertEq(ctx.sale.allocation(bob), 0);
+        assertEq(ctx.sale.refundAmount(bob), amount);
 
         vm.prank(bob);
-        c.sale.refund(bob);
+        ctx.sale.refund(bob);
 
-        assertEq(c.usdc.balanceOf(address(c.sale)), 0);
+        assertEq(ctx.usdc.balanceOf(address(ctx.sale)), 0);
     }
 }
