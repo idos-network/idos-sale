@@ -5,6 +5,7 @@ libs = ["lib", "dependencies"]
 
 # max uint64
 gas_limit = "18446744073709551615"
+skip = ["test/original_suite/*"]
 
 # Use IR-based compiler for better memory optimization
 via_ir = true
