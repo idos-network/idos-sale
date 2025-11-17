@@ -80,9 +80,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// Timestamp at which sale ends
     uint256 public end;
 
-    /// Total tokens available for sale
-    uint256 public immutable totalTokensForSale;
-
     /// Minimum amount to be raised
     uint256 public minTarget;
 
@@ -113,7 +110,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// @param _rate token:paymentToken exchange rate, multiplied by 10e18
     /// @param _start Start timestamp
     /// @param _end End timestamp
-    /// @param _totalTokensForSale Total amount of tokens for sale
     /// @param _minTarget Minimum target for the sale
     /// @param _maxTarget Maximum target for the sale
     constructor(
@@ -121,7 +117,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         uint256 _rate,
         uint256 _start,
         uint256 _end,
-        uint256 _totalTokensForSale,
         uint256 _minTarget,
         uint256 _maxTarget
     ) {
@@ -129,7 +124,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         require(_rate > 0, "can't be zero");
         require(_start > 0, "can't be zero");
         require(_end > _start, "end must be after start");
-        require(_totalTokensForSale > 0, "total cannot be 0");
         require(_minTarget > 0, "_minTarget cannot be 0");
         require(_maxTarget > _minTarget, "_maxTarget cannot be lower than _minTarget");
 
@@ -137,7 +131,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         rate = _rate;
         start = _start;
         end = _end;
-        totalTokensForSale = _totalTokensForSale;
         minTarget = _minTarget;
         maxTarget = _maxTarget;
         minPrice = 0.01 * 1e6;
@@ -364,6 +357,10 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     //
     // Other public APIs
     //
+
+    function totalTokensForSale() public view returns (uint256) {
+        return paymentTokenToToken(minTarget);
+    }
 
     /// @return the amount of tokens already allocated
     function allocated() public view returns (uint256) {

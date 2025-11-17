@@ -21,7 +21,7 @@ contract OffChaincalculatorTest is TestSetup {
 
         uint256 start = vm.getBlockTimestamp();
         uint256 end = start + 24 hours;
-        ctx.sale = new SaleHarnessNoMerkle(address(ctx.usdc), 1 * 1e6, start, end, 100 ether, 5 * 1e6, 100 * 1e6);
+        ctx.sale = new SaleHarnessNoMerkle(address(ctx.usdc), 1 * 1e6, start, end, 5 * 1e6, 100 * 1e6);
 
         ctx.sale.setMinContribution(1);
 
