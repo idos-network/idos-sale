@@ -29,6 +29,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     //
 
     bytes32 public constant CAP_VALIDATOR_ROLE = keccak256("CAP_VALIDATOR_ROLE");
+    bytes32 public constant CUSTODIAN_ROLE = keccak256("CUSTODIAN_ROLE");
 
     // multiplier used for rate conversions
     uint256 constant MUL = 1 ether;
@@ -113,8 +114,12 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     // Merkle root for contributions validation
     bytes32 public merkleRoot;
 
+    /// Custodian address for fund withdrawal
+    address custodian;
+
     error MaxContributorsReached();
     error InvalidLeaf();
+    error CustodianNoSet();
 
     /// @param _paymentToken Token accepted as payment
     /// @param _rate token:paymentToken exchange rate, multiplied by 10e18
@@ -199,7 +204,8 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
         emit Withdraw(msg.sender, paymentTokenAmount);
 
-        IERC20(paymentToken).transfer(msg.sender, paymentTokenAmount);
+        require(custodian != address(0), CustodianNoSet());
+        IERC20(paymentToken).transfer(custodian, paymentTokenAmount);
     }
 
     /// @inheritdoc ISale
@@ -365,6 +371,10 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
     function setMaxTarget(uint256 _maxTarget) external onlyRole(DEFAULT_ADMIN_ROLE) beforeSale nonReentrant {
         maxTarget = _maxTarget;
+    }
+
+    function setCustodian(address _custodian) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
+        custodian = _custodian;
     }
 
     /// Sets the individual cap
