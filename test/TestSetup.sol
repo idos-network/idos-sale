@@ -8,13 +8,27 @@ import {MockERC20} from "test/harness/MockERC20.sol";
 import {OffChainCalculator} from "src/RisingTide/OffChainCalculator.sol";
 import {RisingTide} from "src/RisingTide/RisingTide.sol";
 
+import {OffChainCalculator} from "src/RisingTide/OffChainCalculator.sol";
+import {RisingTide} from "src/RisingTide/RisingTide.sol";
+
 contract TestSetup is Test {
-    struct Case {
+    struct Ctx {
         SaleHarnessNoMerkle sale;
         MockERC20 usdc;
     }
 
-    TestSetup.Case public c;
+    struct Case {
+        uint256 maxTarget;
+        int256 cap; // negative means we don't know
+        uint256[] investors;
+        uint256 computedCap; // filled in by the test runner
+        uint256 capMaxDelta; // cap deviation from maxTarget
+        bool alreadySorted;
+    }
+
+    TestSetup.Ctx public ctx;
+    uint256 start;
+    uint256 end;
 
     // deploys a token sale
     // TODO hardcoding sale target to [1$, 10_000_000$]
@@ -24,12 +38,12 @@ contract TestSetup is Test {
     }
 
     function setup(uint256 maxTarget) internal {
-        uint256 start = vm.getBlockTimestamp();
-        uint256 end = start + 24 hours;
+        start = vm.getBlockTimestamp();
+        end = start + 24 hours;
 
-        c.usdc = new MockERC20("USDC", "USDC", 6);
-        c.sale = new SaleHarnessNoMerkle(
-            address(c.usdc), // paymentToken
+        ctx.usdc = new MockERC20("USDC", "USDC", 6);
+        ctx.sale = new SaleHarnessNoMerkle(
+            address(ctx.usdc), // paymentToken
             1 ether, // rate TODO: set to 1 for now to get it out of the way
             start, // start timestamp
             end, // end timestamp
@@ -39,7 +53,7 @@ contract TestSetup is Test {
         );
 
         // TODO: min contribution set to minimum non-zero possible, just to get it out of the way for now
-        c.sale.setMinContribution(1);
+        ctx.sale.setMinContribution(1);
     }
 
     function usdc(uint256 amount) internal pure returns (uint256) {
@@ -51,46 +65,92 @@ contract TestSetup is Test {
     }
 
     function endSale() internal {
-        vm.warp(c.sale.end() + 1000);
+        vm.warp(ctx.sale.end() + 1000);
+    }
+
+    function assertFullCase(Case memory c) internal {
+        setup(c.maxTarget);
+        applyDeposits(c.investors);
+        c.computedCap = assertRisingTideCap(c);
+        assertRefunds(c);
     }
 
     function invest(address addr, uint256 amount) internal {
         vm.startPrank(addr);
-        c.usdc.mint(addr, amount);
-        c.usdc.approve(address(c.sale), amount);
-        c.sale.buy(amount, new bytes32[](0));
+        ctx.usdc.mint(addr, amount);
+        ctx.usdc.approve(address(ctx.sale), amount);
+        ctx.sale.buy(amount, new bytes32[](0));
         vm.stopPrank();
     }
 
     // optionally checks the cap against a given value
     // run on-chain validation to ensure cap is validated
-    function assertRisingTideCap(uint256 expectedCap) internal {
+    function assertRisingTideCap(Case memory c) private returns (uint256) {
         // perform off-chain cap calculation
         OffChainCalculator calculator = new OffChainCalculator();
-        uint256 cap = calculator.computeCap(c.sale);
+        uint256 cap = calculator.computeCapWithSortedFlag(ctx.sale, c.alreadySorted);
 
         // if provided, assert the cap is what we expect
-        if (expectedCap > 0) {
-            assertEq(cap, expectedCap);
+        if (c.cap >= 0) {
+            assertApproxEqAbs(cap, uint256(c.cap), c.capMaxDelta);
         }
 
         // validate cap using on-chain logic
         endSale();
-        c.sale.setIndividualCap(cap);
-        while (c.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
-            c.sale.risingTide_validate();
+        ctx.sale.setIndividualCap(cap);
+        while (ctx.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
+            ctx.sale.risingTide_validate();
         }
-        assert(c.sale.risingTide_isValidCap());
+        assert(ctx.sale.risingTide_isValidCap());
+        return cap;
     }
 
-    function applyDeposits(uint16[] memory amounts) internal {
+    function applyDeposits(uint16[] memory amounts) private {
         for (uint160 i = 0; i < amounts.length; i++) {
             if (amounts[i] == 0) {
                 continue;
             }
-            console.log(string(abi.encode("amounts[", vm.toString(i), "] = ", vm.toString(amounts[i]), ";")));
             address addr = address(i + 1);
             invest(addr, amounts[i]);
         }
+    }
+
+    function applyDeposits(uint256[] memory investors) private {
+        for (uint160 i = 0; i < investors.length; i++) {
+            if (investors[i] == 0) {
+                continue;
+            }
+            invest(address(i + 1), investors[i]);
+        }
+    }
+
+    function assertRefunds(Case memory c) private view {
+        for (uint160 i = 0; i < c.investors.length; i++) {
+            if (c.investors[i] == 0) {
+                continue;
+            }
+            uint256 uncapped = c.investors[i];
+            uint256 capped = uncapped > c.computedCap ? c.computedCap : uncapped;
+            assertEq(ctx.sale.refundAmount(address(i + 1)), uncapped - capped);
+        }
+    }
+
+    function mintUsdc(address addr, uint256 amount) internal {
+        vm.startPrank(addr);
+        ctx.usdc.mint(addr, amount);
+        ctx.usdc.approve(address(ctx.sale), amount);
+        vm.stopPrank();
+    }
+
+    function setCap() internal returns (uint256) {
+        OffChainCalculator calculator = new OffChainCalculator();
+        uint256 cap = calculator.computeCap(ctx.sale);
+        ctx.sale.setIndividualCap(cap);
+        while (ctx.sale.risingTideState() == RisingTide.RisingTideState.Validating) {
+            ctx.sale.risingTide_validate();
+        }
+        assert(ctx.sale.risingTide_isValidCap());
+
+        return cap;
     }
 }
