@@ -142,6 +142,12 @@ contract SaleLegacyTest is TestSetup {
         vm.stopPrank();
     }
 
+    function test_WithdrawRevertsIfCustodianNotSet() public {
+        ctx.sale.setCustodian(address(0));
+        vm.expectRevert(bytes("CustodianNoSet()"));
+        ctx.sale.withdraw();
+    }
+
     function test_WithdrawRevertsIfNoCapSet() public {
         vm.warp(ctx.sale.end() + 1000);
 
