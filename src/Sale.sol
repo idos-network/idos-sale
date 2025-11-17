@@ -49,6 +49,9 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// Emitted every time someone withdraws their funds
     event Withdraw(address indexed to, uint256 paymentTokenAmount);
 
+    /// Emitted when the custodian is set
+    event CustodianSet(address indexed custodian);
+
     //
     // State
     //
@@ -375,6 +378,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     function setCustodian(address _custodian) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
         require(_custodian != address(0), "can't be zero");
         custodian = _custodian;
+        emit CustodianSet(_custodian);
     }
 
     /// Sets the individual cap
