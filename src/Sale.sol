@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "forge-std/console.sol";
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
@@ -196,9 +195,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         withdrawn = true;
 
         uint256 allocatedAmount = allocated();
-        console.log("allocated", allocatedAmount);
         uint256 paymentTokenAmount = tokenToPaymentToken(allocatedAmount);
-        console.log("amount", paymentTokenAmount);
 
         emit Withdraw(msg.sender, paymentTokenAmount);
 
