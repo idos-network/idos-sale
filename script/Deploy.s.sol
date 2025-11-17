@@ -15,8 +15,8 @@ contract Deploy is Script {
     uint256 startRegistration = 0; // TODO
     uint256 endRegistration = 0; // TODO
 
-    address capValidator = address(0x2); // TODO
-    address custodian = address(0x3); // TODO
+    address capValidator = address(0x0); // TODO
+    address custodian = address(0x0); // TODO
 
     function run() public {
         vm.startBroadcast();
