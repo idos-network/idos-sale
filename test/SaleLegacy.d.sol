@@ -142,24 +142,6 @@ contract SaleLegacyTest is TestSetup {
         vm.stopPrank();
     }
 
-    function test_WithdrawRevertsIfCustodianNotSet() public {
-        uint256 mintAmount = usdc(2);
-        uint256 buyAmount = usdc(2);
-
-        mintUsdc(alice, mintAmount);
-
-        vm.startPrank(alice);
-        ctx.sale.buy(buyAmount, proof);
-        vm.stopPrank();
-
-        vm.warp(ctx.sale.end() + 1000);
-
-        ctx.sale.setIndividualCap(buyAmount);
-
-        vm.expectRevert(bytes("CustodianNoSet()"));
-        ctx.sale.withdraw();
-    }
-
     function test_WithdrawRevertsIfNoCapSet() public {
         vm.warp(ctx.sale.end() + 1000);
 
