@@ -12,20 +12,7 @@ contract SaleHarnessNoMerkle is Sale {
         uint256 _totalTokensForSale,
         uint256 _minTarget,
         uint256 _maxTarget
-    )
-        Sale(
-            _paymentToken,
-            _rate,
-            _start,
-            _end,
-            _totalTokensForSale,
-            _minTarget,
-            _maxTarget,
-            // TODO: registration range seems to be dead code
-            0, // startRegistration
-            1 // endRegistration
-        )
-    {}
+    ) Sale(_paymentToken, _rate, _start, _end, _totalTokensForSale, _minTarget, _maxTarget) {}
 
     function verifyLeaf(
         bytes32[] calldata,

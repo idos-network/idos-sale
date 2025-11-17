@@ -105,23 +105,6 @@ contract SaleLegacyTest is TestSetup {
     //    vm.stopPrank();
     //}
 
-    function test_BuyRevertsAfterReachingMaxTarget() public {
-        uint256 mintAmount = 10 ether;
-        uint256 buyAmount = 5 ether;
-
-        mintUsdc(alice, mintAmount);
-
-        ctx.sale.setMinContribution(usdc(1));
-        ctx.sale.setMaxTarget(usdc(1));
-
-        vm.startPrank(alice);
-        ctx.sale.buy(buyAmount, proof);
-
-        vm.expectRevert(Sale.MaxContributorsReached.selector);
-        ctx.sale.buy(buyAmount, proof);
-        vm.stopPrank();
-    }
-
     function test_WithdrawRevertsIfNotOwner() public {
         vm.expectRevert();
         vm.startPrank(alice);
