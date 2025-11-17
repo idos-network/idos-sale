@@ -35,7 +35,6 @@ contract OffChainCalculator {
             uint256 amount = amounts[idx];
             uint256 hypothetical = amount * investorsLeft;
 
-            console.log(hypothetical, investorsLeft, available - accum);
             if (hypothetical > (available - accum)) {
                 // Cap exceeded — compute precise cutoff
                 return (available - accum) / investorsLeft;
