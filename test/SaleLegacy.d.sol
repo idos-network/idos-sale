@@ -143,8 +143,6 @@ contract SaleLegacyTest is TestSetup {
     }
 
     function test_WithdrawRevertsIfCustodianNotSet() public {
-        ctx.sale.setCustodian(address(0));
-
         uint256 mintAmount = usdc(2);
         uint256 buyAmount = usdc(2);
 
