@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
+import {Script} from "forge-std/Script.sol";
 import {Sale} from "src/Sale.sol";
 
-contract Deploy {
+contract Deploy is Script {
     address usdc = address(0x1); // TODO
     uint256 rate = 0; // TODO
     uint256 start = 0; // TODO
