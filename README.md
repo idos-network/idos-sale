@@ -1,66 +1,21 @@
-## Foundry
+## idOS token sale contract
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This is a token Sale contract, adapted from the original Citizend contract at https://github.com/subvisual/citizend
 
-Foundry consists of:
+Overall features:
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- Rising tide mechanism (off-chain calculation, on-chain validation)
+- min/max raise amounts (sale is canceled if below min target, and capped at max target)
+- configurable duration
+- merkle tree whitelisting
 
-## Documentation
+## Deploy
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+```bash
+forge script script/Deploy.s.sol:Deploy \
+--rpc-url $RPC_URL \
+--broadcast \
+--verify \
+--etherscan-api-key $ETHERSCAN_API_KEY \
+--private-key $PRIVATE_KEY
 ```

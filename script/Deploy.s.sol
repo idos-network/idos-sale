@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.20;
+
+import {Sale} from "src/Sale.sol";
+
+contract Deploy {
+    address usdc = address(0x1); // TODO
+    uint256 rate = 0; // TODO
+    uint256 start = 0; // TODO
+    uint256 end = 0; // TODO
+    uint256 totalTokensForSale = 0; // TODO
+    uint256 minTarget = 0; // TODO
+    uint256 maxTarget = 0; // TODO
+    uint256 startRegistration = 0; // TODO
+    uint256 endRegistration = 0; // TODO
+
+    address capValidator = address(0x2); // TODO
+
+    function run() public {
+        vm.startBroadcast();
+        sale = new Sale(
+            usdc, rate, start, end, totalTokensForSale, minTarget, maxTarget, startRegistration, endRegistration
+        );
+        vm.stopBroadcast();
+    }
+}
