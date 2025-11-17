@@ -196,6 +196,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     function withdraw() external onlyRole(DEFAULT_ADMIN_ROLE) capCalculated nonReentrant {
         require(block.timestamp > end, "sale not ended yet");
         require(!withdrawn, "already withdrawn");
+        require(custodian != address(0), CustodianNoSet());
 
         withdrawn = true;
 
@@ -204,7 +205,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
         emit Withdraw(msg.sender, paymentTokenAmount);
 
-        require(custodian != address(0), CustodianNoSet());
         IERC20(paymentToken).transfer(custodian, paymentTokenAmount);
     }
 
