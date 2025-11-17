@@ -16,12 +16,15 @@ contract Deploy is Script {
     uint256 endRegistration = 0; // TODO
 
     address capValidator = address(0x2); // TODO
+    address custodian = address(0x3); // TODO
 
     function run() public {
         vm.startBroadcast();
-        sale = new Sale(
+        Sale sale = new Sale(
             usdc, rate, start, end, totalTokensForSale, minTarget, maxTarget, startRegistration, endRegistration
         );
+        sale.grantRole(sale.CAP_VALIDATOR_ROLE(), capValidator);
+        sale.setCustodian(custodian);
         vm.stopBroadcast();
     }
 }
