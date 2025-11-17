@@ -44,11 +44,11 @@ contract OffChaincalculatorTest is TestSetup {
         ctx.sale.setMaxTarget(100 * 1e6);
 
         vm.startPrank(alice);
-        ctx.sale.buy(ctx.sale.paymentTokenToToken(10 * 1e6), proof);
+        ctx.sale.buy(10 * 1e6, proof);
         vm.stopPrank();
 
         vm.startPrank(bob);
-        ctx.sale.buy(ctx.sale.paymentTokenToToken(100 * 1e6), proof);
+        ctx.sale.buy(100 * 1e6, proof);
         vm.stopPrank();
 
         vm.warp(ctx.sale.end() + duration);
@@ -83,7 +83,7 @@ contract OffChaincalculatorTest is TestSetup {
             ctx.usdc.mint(investor, 1e9 ether);
             vm.startPrank(investor);
             ctx.usdc.approve(address(ctx.sale), type(uint256).max);
-            ctx.sale.buy(ctx.sale.paymentTokenToToken(contributions[i]), proof);
+            ctx.sale.buy(contributions[i], proof);
             vm.stopPrank();
         }
 
@@ -109,7 +109,7 @@ contract OffChaincalculatorTest is TestSetup {
             ctx.usdc.mint(investor, 1e9 ether);
             vm.startPrank(investor);
             ctx.usdc.approve(address(ctx.sale), type(uint256).max);
-            ctx.sale.buy(ctx.sale.paymentTokenToToken(contributions[i]), proof);
+            ctx.sale.buy(contributions[i], proof);
             vm.stopPrank();
         }
 
@@ -135,7 +135,7 @@ contract OffChaincalculatorTest is TestSetup {
             ctx.usdc.mint(investor, 1e9 ether);
             vm.startPrank(investor);
             ctx.usdc.approve(address(ctx.sale), type(uint256).max);
-            ctx.sale.buy(ctx.sale.paymentTokenToToken(contributions[i]), proof);
+            ctx.sale.buy(contributions[i], proof);
             vm.stopPrank();
         }
 
