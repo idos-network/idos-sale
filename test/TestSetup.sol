@@ -54,6 +54,7 @@ contract TestSetup is Test {
 
         // TODO: min contribution set to minimum non-zero possible, just to get it out of the way for now
         ctx.sale.setMinContribution(1);
+        ctx.sale.setCustodian(address(this));
     }
 
     function usdc(uint256 amount) internal pure returns (uint256) {
