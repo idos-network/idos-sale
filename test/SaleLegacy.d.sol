@@ -15,7 +15,7 @@ contract SaleLegacyTest is TestSetup {
 
     bytes32[] proof = new bytes32[](0);
 
-    event Purchase(address indexed from, uint256 paymentTokenAmount, uint256 tokenAmount);
+    event Purchase(address indexed from, uint256 paymentTokenAmount);
 
     event Claim(address indexed to, uint256 tokenAmount);
     event Refund(address indexed to, uint256 paymentTokenAmount);
@@ -53,7 +53,7 @@ contract SaleLegacyTest is TestSetup {
 
         vm.expectEmit();
 
-        emit Purchase(address(alice), buyAmount, buyAmount);
+        emit Purchase(address(alice), buyAmount);
 
         ctx.sale.buy(buyAmount, proof);
 
@@ -74,12 +74,12 @@ contract SaleLegacyTest is TestSetup {
         vm.startPrank(alice);
 
         vm.expectEmit();
-        emit Purchase(address(alice), buyAmount, buyAmount);
+        emit Purchase(address(alice), buyAmount);
 
         ctx.sale.buy(buyAmount, proof);
 
         vm.expectEmit();
-        emit Purchase(address(alice), buyAmount, buyAmount);
+        emit Purchase(address(alice), buyAmount);
 
         ctx.sale.buy(buyAmount, proof);
 

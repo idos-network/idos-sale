@@ -384,15 +384,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
     /// @return the amount of tokens already allocated
     function allocated() public view returns (uint256) {
-        uint256 totalUncappedInPaymentToken = tokenToPaymentToken(totalUncappedAllocations);
-
-        // If oversubscribed and cap is set, total allocated is exactly maxTarget
-        if (totalUncappedInPaymentToken > maxTarget && risingTide_isValidCap()) {
-            return paymentTokenToToken(maxTarget);
-        }
-
-        // If not oversubscribed, return min of uncapped allocations and total tokens for sale
-        return Math.min(totalUncappedAllocations, totalTokensForSale);
+        return Math.min(totalUncappedAllocations, maxTarget);
     }
 
     //
