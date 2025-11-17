@@ -114,7 +114,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     bytes32 public merkleRoot;
 
     /// Custodian address for fund withdrawal
-    address custodian;
+    address public custodian;
 
     error MaxContributorsReached();
     error InvalidLeaf();
@@ -373,6 +373,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     }
 
     function setCustodian(address _custodian) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
+        require(_custodian != address(0), "can't be zero");
         custodian = _custodian;
     }
 
