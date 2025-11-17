@@ -80,12 +80,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// Timestamp at which sale ends
     uint256 public end;
 
-    /// Timestamp at which registration period starts
-    uint256 public startRegistration;
-
-    /// Timestamp at which registration period ends
-    uint256 public endRegistration;
-
     /// Total tokens available for sale
     uint256 public immutable totalTokensForSale;
 
@@ -123,8 +117,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// @param _totalTokensForSale Total amount of tokens for sale
     /// @param _minTarget Minimum target for the sale
     /// @param _maxTarget Maximum target for the sale
-    /// @param _startRegistration Registration period start timestamp
-    /// @param _endRegistration Registration period end timestamp
     constructor(
         address _paymentToken,
         uint256 _rate,
@@ -132,9 +124,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         uint256 _end,
         uint256 _totalTokensForSale,
         uint256 _minTarget,
-        uint256 _maxTarget,
-        uint256 _startRegistration,
-        uint256 _endRegistration
+        uint256 _maxTarget
     ) {
         require(_paymentToken != address(0), "can't be zero");
         require(_rate > 0, "can't be zero");
@@ -143,7 +133,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         require(_totalTokensForSale > 0, "total cannot be 0");
         require(_minTarget > 0, "_minTarget cannot be 0");
         require(_maxTarget > _minTarget, "_maxTarget cannot be lower than _minTarget");
-        require(_endRegistration > _startRegistration, "_endRegistration cannot be lower than _startRegistration");
 
         paymentToken = _paymentToken;
         rate = _rate;
@@ -152,8 +141,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         totalTokensForSale = _totalTokensForSale;
         minTarget = _minTarget;
         maxTarget = _maxTarget;
-        startRegistration = _startRegistration;
-        endRegistration = _endRegistration;
         minPrice = 0.01 * 1e6;
         maxPrice = 0.01 * 1e6;
 
@@ -341,14 +328,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
     function setMerkleRoot(bytes32 _merkleRoot) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
         merkleRoot = _merkleRoot;
-    }
-
-    function setStartRegistration(uint256 _startRegistration) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
-        startRegistration = _startRegistration;
-    }
-
-    function setEndRegistration(uint256 _endRegistration) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
-        endRegistration = _endRegistration;
     }
 
     function setStart(uint256 _start) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
