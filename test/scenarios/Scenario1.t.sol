@@ -1024,7 +1024,6 @@ contract Scenario1Test is TestSetup {
         for (uint256 i = 0; i < c.investors.length; i++) {
             sum += c.investors[i];
         }
-        console.log(sum);
         assertFullCase(c);
     }
 }
