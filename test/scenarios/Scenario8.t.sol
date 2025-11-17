@@ -1018,7 +1018,8 @@ contract Scenario8Test is TestSetup {
             cap: 2_000_000_000,
             capMaxDelta: 1_000_000,
             investors: _buildInvestors8(),
-            computedCap: 0
+            computedCap: 0,
+            alreadySorted: false
         });
         assertFullCase(c);
     }

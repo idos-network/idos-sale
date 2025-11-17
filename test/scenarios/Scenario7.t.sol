@@ -1017,7 +1017,8 @@ contract Scenario7Test is TestSetup {
             cap: 10_611_000_000,
             capMaxDelta: 1_000_000,
             investors: _buildInvestors7(),
-            computedCap: 0
+            computedCap: 0,
+            alreadySorted: false
         });
         assertFullCase(c);
     }

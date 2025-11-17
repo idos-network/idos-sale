@@ -1512,11 +1512,12 @@ contract Scenario3Test is TestSetup {
 
     function test_scenario3() public {
         Case memory c = Case({
-            maxTarget: 46_259_184_000_000,
+            maxTarget: 2_000_000_000_000,
             cap: 1_349_000_000,
             capMaxDelta: 1_000_000,
             investors: _buildInvestors3(),
-            computedCap: 0
+            computedCap: 0,
+            alreadySorted: true
         });
         assertFullCase(c);
     }

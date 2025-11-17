@@ -23,6 +23,7 @@ contract TestSetup is Test {
         uint256[] investors;
         uint256 computedCap; // filled in by the test runner
         uint256 capMaxDelta; // cap deviation from maxTarget
+        bool alreadySorted;
     }
 
     TestSetup.Ctx public ctx;
@@ -70,7 +71,7 @@ contract TestSetup is Test {
     function assertFullCase(Case memory c) internal {
         setup(c.maxTarget);
         applyDeposits(c.investors);
-        c.computedCap = assertRisingTideCap(c.cap, c.capMaxDelta);
+        c.computedCap = assertRisingTideCap(c);
         assertRefunds(c);
     }
 
@@ -84,14 +85,14 @@ contract TestSetup is Test {
 
     // optionally checks the cap against a given value
     // run on-chain validation to ensure cap is validated
-    function assertRisingTideCap(int256 expectedCap, uint256 maxDelta) private returns (uint256) {
+    function assertRisingTideCap(Case memory c) private returns (uint256) {
         // perform off-chain cap calculation
         OffChainCalculator calculator = new OffChainCalculator();
-        uint256 cap = calculator.computeCap(ctx.sale);
+        uint256 cap = calculator.computeCapWithSortedFlag(ctx.sale, c.alreadySorted);
 
         // if provided, assert the cap is what we expect
-        if (expectedCap >= 0) {
-            assertApproxEqAbs(cap, uint256(expectedCap), maxDelta);
+        if (c.cap >= 0) {
+            assertApproxEqAbs(cap, uint256(c.cap), c.capMaxDelta);
         }
 
         // validate cap using on-chain logic

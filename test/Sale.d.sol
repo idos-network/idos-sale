@@ -9,32 +9,47 @@ contract SaleTest is TestSetup {
     }
 
     function test_singleInvestor() public {
-        Case memory c = Case({maxTarget: 100, cap: 100, investors: new uint256[](1), computedCap: 0, capMaxDelta: 0});
+        Case memory c = Case({
+            maxTarget: 100, cap: 100, investors: new uint256[](1), computedCap: 0, capMaxDelta: 0, alreadySorted: false
+        });
         c.investors[0] = 100;
         assertFullCase(c);
     }
 
     function test_twoEqualInvestorsExactMaxTarget() public {
-        Case memory c = Case({maxTarget: 200, cap: 100, investors: new uint256[](2), computedCap: 0, capMaxDelta: 0});
+        Case memory c = Case({
+            maxTarget: 200, cap: 100, investors: new uint256[](2), computedCap: 0, capMaxDelta: 0, alreadySorted: false
+        });
         c.investors[0] = 100;
         c.investors[1] = 100;
         assertFullCase(c);
     }
 
     function test_twoEqualInvestorsOverMaxTarget() public {
-        Case memory c = Case({maxTarget: 200, cap: 100, investors: new uint256[](2), computedCap: 0, capMaxDelta: 0});
+        Case memory c = Case({
+            maxTarget: 200, cap: 100, investors: new uint256[](2), computedCap: 0, capMaxDelta: 0, alreadySorted: false
+        });
         c.investors[0] = 101;
         c.investors[1] = 100;
         assertFullCase(c);
     }
 
     function test_noInvestors() public {
-        Case memory c = Case({maxTarget: 2, cap: 0, investors: new uint256[](0), computedCap: 0, capMaxDelta: 0});
+        Case memory c = Case({
+            maxTarget: 2, cap: 0, investors: new uint256[](0), computedCap: 0, capMaxDelta: 0, alreadySorted: false
+        });
         assertFullCase(c);
     }
 
     function test_gitbookExample() public {
-        Case memory c = Case({maxTarget: 5000, cap: 542, investors: new uint256[](10), computedCap: 0, capMaxDelta: 0});
+        Case memory c = Case({
+            maxTarget: 5000,
+            cap: 542,
+            investors: new uint256[](10),
+            computedCap: 0,
+            capMaxDelta: 0,
+            alreadySorted: false
+        });
         c.investors[0] = 500;
         c.investors[1] = 1000;
         c.investors[2] = 750;
@@ -50,14 +65,18 @@ contract SaleTest is TestSetup {
     }
 
     function test_edgeCase() public {
-        Case memory c = Case({maxTarget: 100, cap: 90, investors: new uint256[](2), computedCap: 0, capMaxDelta: 0});
+        Case memory c = Case({
+            maxTarget: 100, cap: 90, investors: new uint256[](2), computedCap: 0, capMaxDelta: 0, alreadySorted: false
+        });
         c.investors[0] = 10;
         c.investors[1] = 100;
         assertFullCase(c);
     }
 
     function test_roundingErrors() public {
-        Case memory c = Case({maxTarget: 100, cap: 33, investors: new uint256[](3), computedCap: 0, capMaxDelta: 0});
+        Case memory c = Case({
+            maxTarget: 100, cap: 33, investors: new uint256[](3), computedCap: 0, capMaxDelta: 0, alreadySorted: false
+        });
         c.investors[0] = 100;
         c.investors[1] = 100;
         c.investors[2] = 100;
@@ -75,7 +94,8 @@ contract SaleTest is TestSetup {
             amounts[i] = _amounts[i];
         }
 
-        Case memory c = Case({maxTarget: total, cap: -1, investors: amounts, computedCap: 0, capMaxDelta: 0});
+        Case memory c =
+            Case({maxTarget: total, cap: -1, investors: amounts, computedCap: 0, capMaxDelta: 0, alreadySorted: false});
         assertFullCase(c);
     }
 }
