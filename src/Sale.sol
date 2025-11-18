@@ -192,12 +192,13 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         bool isValidLeaf = verifyLeaf(_merkleProof, leaf);
         if (!isValidLeaf) revert InvalidLeaf();
 
-        require(_paymentAmount >= minContribution, "can't be below minimum");
         require(_paymentAmount > 0, "can't be zero");
 
         uint256 currentAllocation = accounts[msg.sender].uncappedAllocation;
 
         if (currentAllocation == 0) {
+            // only check first contribution, allow top ups for smaller amounts
+            require(_paymentAmount >= minContribution, "can't be below minimum");
             investorByIndex[_investorCount] = msg.sender;
             _investorCount++;
         }
