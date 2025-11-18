@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "forge-std/console.sol";
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
@@ -71,9 +72,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// Timestamp at which sale ends
     uint256 public end;
 
-    /// Total tokens available for sale
-    uint256 public immutable totalTokensForSale;
-
     /// Minimum amount to be raised
     uint256 public minTarget;
 
@@ -104,7 +102,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// @param _rate token:paymentToken exchange rate, multiplied by 10e18
     /// @param _start Start timestamp
     /// @param _end End timestamp
-    /// @param _totalTokensForSale Total amount of tokens for sale
     /// @param _minTarget Minimum target for the sale
     /// @param _maxTarget Maximum target for the sale
     constructor(
@@ -112,7 +109,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         uint256 _rate,
         uint256 _start,
         uint256 _end,
-        uint256 _totalTokensForSale,
         uint256 _minTarget,
         uint256 _maxTarget
     ) {
@@ -120,15 +116,13 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         require(_rate > 0, "can't be zero");
         require(_start > 0, "can't be zero");
         require(_end > _start, "end must be after start");
-        require(_totalTokensForSale > 0, "total cannot be 0");
         require(_minTarget > 0, "_minTarget cannot be 0");
-        require(_maxTarget > _minTarget, "_maxTarget cannot be lower than _minTarget");
+        require(_maxTarget >= _minTarget, "_maxTarget cannot be lower than _minTarget");
 
         paymentToken = _paymentToken;
         rate = _rate;
         start = _start;
         end = _end;
-        totalTokensForSale = _totalTokensForSale;
         minTarget = _minTarget;
         maxTarget = _maxTarget;
 
@@ -302,10 +296,12 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     }
 
     function setMinTarget(uint256 _minTarget) external onlyRole(DEFAULT_ADMIN_ROLE) beforeSale nonReentrant {
+        require(maxTarget >= _minTarget, "maxTarget cannot be lower than _minTarget");
         minTarget = _minTarget;
     }
 
     function setMaxTarget(uint256 _maxTarget) external onlyRole(DEFAULT_ADMIN_ROLE) beforeSale nonReentrant {
+        require(_maxTarget >= minTarget, "_maxTarget cannot be lower than minTarget");
         maxTarget = _maxTarget;
     }
 
@@ -336,6 +332,10 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     //
     // Other public APIs
     //
+
+    function totalTokensForSale() public view returns (uint256) {
+        return paymentTokenToToken(minTarget);
+    }
 
     /// @return the amount of tokens already allocated
     function allocated() public view returns (uint256) {

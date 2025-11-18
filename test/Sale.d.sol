@@ -98,4 +98,9 @@ contract SaleTest is TestSetup {
             Case({maxTarget: total, cap: -1, investors: amounts, computedCap: 0, capMaxDelta: 0, alreadySorted: false});
         assertFullCase(c);
     }
+
+    function test_totalTokensForSale() public {
+        setup();
+        assertEq(ctx.sale.totalTokensForSale(), 1 ether);
+    }
 }

@@ -160,12 +160,11 @@ contract SaleLegacyTest is TestSetup {
         ctx.sale.withdraw();
     }
 
-    //TODO: this test wasn't making much sense in its previous form
-    // I to something that seemed to match its description
     function test_WithdrawDoesNotWithdrawRefunds() public {
         uint256 ownerBalanceBefore = ctx.usdc.balanceOf(address(this));
         uint256 amount = usdc(1);
 
+        ctx.sale.setMinTarget(amount / 2);
         ctx.sale.setMaxTarget(amount);
 
         invest(alice, amount);
@@ -193,8 +192,6 @@ contract SaleLegacyTest is TestSetup {
         vm.stopPrank();
 
         uint256 ownerBalanceAfter = ctx.usdc.balanceOf(address(this));
-        //TODO: error : value withdraw not correct
-        //allocated function is not correct
         assertEq(ownerBalanceAfter - ownerBalanceBefore, (amount * 2) - aliceRefund - bobRefund);
     }
 
@@ -225,6 +222,7 @@ contract SaleLegacyTest is TestSetup {
     }
 
     function test_RefundAmountIsZeroIfAlreadyRefunded() public {
+        ctx.sale.setMinTarget(usdc(1));
         ctx.sale.setMaxTarget(usdc(2));
 
         invest(alice, usdc(2));
@@ -243,6 +241,7 @@ contract SaleLegacyTest is TestSetup {
     }
 
     function test_RefundAmountIsZeroIfIndividualCapIsHigherThanInvestedTotal() public {
+        ctx.sale.setMinTarget(usdc(1));
         ctx.sale.setMaxTarget(usdc(10));
 
         invest(alice, usdc(1));
@@ -254,6 +253,7 @@ contract SaleLegacyTest is TestSetup {
     }
 
     function test_RefundReturnsCorrectAmmount() public {
+        ctx.sale.setMinTarget(usdc(1));
         ctx.sale.setMaxTarget(usdc(4));
 
         invest(alice, usdc(4));
@@ -293,6 +293,7 @@ contract SaleLegacyTest is TestSetup {
     }
 
     function test_RefundRevertsIfDoubleRefund() public {
+        ctx.sale.setMinTarget(usdc(1));
         ctx.sale.setMaxTarget(usdc(4));
 
         invest(alice, usdc(4));
@@ -310,6 +311,7 @@ contract SaleLegacyTest is TestSetup {
     }
 
     function test_AllocationIsZeroIfNotMinTargetReached() public {
+        ctx.sale.setMaxTarget(101 ether);
         ctx.sale.setMinTarget(100 ether);
 
         invest(alice, usdc(1));
