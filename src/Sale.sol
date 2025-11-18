@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "forge-std/console.sol";
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
@@ -116,7 +117,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         require(_start > 0, "can't be zero");
         require(_end > _start, "end must be after start");
         require(_minTarget > 0, "_minTarget cannot be 0");
-        require(_maxTarget > _minTarget, "_maxTarget cannot be lower than _minTarget");
+        require(_maxTarget >= _minTarget, "_maxTarget cannot be lower than _minTarget");
 
         paymentToken = _paymentToken;
         rate = _rate;
@@ -295,10 +296,12 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     }
 
     function setMinTarget(uint256 _minTarget) external onlyRole(DEFAULT_ADMIN_ROLE) beforeSale nonReentrant {
+        require(maxTarget >= _minTarget, "maxTarget cannot be lower than _minTarget");
         minTarget = _minTarget;
     }
 
     function setMaxTarget(uint256 _maxTarget) external onlyRole(DEFAULT_ADMIN_ROLE) beforeSale nonReentrant {
+        require(_maxTarget >= minTarget, "_maxTarget cannot be lower than minTarget");
         maxTarget = _maxTarget;
     }
 

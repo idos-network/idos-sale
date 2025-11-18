@@ -59,8 +59,8 @@ contract OffChaincalculatorTest is TestSetup {
     }
 
     function test_gitbook() public {
-        ctx.sale.setMaxTarget(500_000);
         ctx.sale.setMinTarget(0);
+        ctx.sale.setMaxTarget(500_000);
 
         address[10] memory investors = [
             makeAddr("inv1"),
@@ -96,8 +96,8 @@ contract OffChaincalculatorTest is TestSetup {
 
     function test_gitbook_small() public {
         // Arrange
-        ctx.sale.setMaxTarget(500_000);
         ctx.sale.setMinTarget(0);
+        ctx.sale.setMaxTarget(500_000);
 
         // Create 10 mock investors
         address[1] memory investors = [makeAddr("inv1")];
