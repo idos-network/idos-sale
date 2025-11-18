@@ -53,20 +53,11 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     // State
     //
 
-    /// See {ISale.token}
-    address public override(ISale) token;
-
     /// See {ISale.paymentToken}
     address public immutable override(ISale) paymentToken;
 
     /// Fixed price of token, expressed in paymentToken amount
     uint256 public immutable rate;
-
-    /// Fixed minimum price of token, expressed in paymentToken amount
-    uint256 public immutable minPrice;
-
-    /// Fixed maximum price of token, expressed in paymentToken amount
-    uint256 public immutable maxPrice;
 
     /// Minimum amount per contribution, expressed in paymentToken amount
     uint256 public minContribution;
@@ -133,8 +124,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         end = _end;
         minTarget = _minTarget;
         maxTarget = _maxTarget;
-        minPrice = 0.01 * 1e6;
-        maxPrice = 0.01 * 1e6;
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(CAP_VALIDATOR_ROLE, msg.sender);
@@ -262,18 +251,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         return uncappedAllocation(_to);
     }
 
-    function currentTokenPrice() public view returns (uint256) {
-        if (totalUncappedAllocations < minTarget) {
-            return minPrice;
-        }
-
-        if (totalUncappedAllocations > maxTarget) {
-            return maxPrice;
-        }
-
-        return minPrice + ((maxPrice - minPrice) * (totalUncappedAllocations - minTarget)) / (maxTarget - minTarget);
-    }
-
     //
     // RisingTide
     //
@@ -304,11 +281,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     //
     // Admin API
     //
-
-    function setToken(address _token) external onlyRole(DEFAULT_ADMIN_ROLE) beforeSale nonReentrant {
-        require(_token != address(0), "can't be zero");
-        token = _token;
-    }
 
     function setMerkleRoot(bytes32 _merkleRoot) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
         merkleRoot = _merkleRoot;
