@@ -8,9 +8,6 @@ import {MockERC20} from "test/harness/MockERC20.sol";
 import {OffChainCalculator} from "src/RisingTide/OffChainCalculator.sol";
 import {RisingTide} from "src/RisingTide/RisingTide.sol";
 
-import {OffChainCalculator} from "src/RisingTide/OffChainCalculator.sol";
-import {RisingTide} from "src/RisingTide/RisingTide.sol";
-
 contract TestSetup is Test {
     struct Ctx {
         SaleHarnessNoMerkle sale;

@@ -2,16 +2,13 @@
 pragma solidity ^0.8.20;
 
 interface ISale {
-    /// The $CTND token
-    function token() external view returns (address);
-
     /// The $USDC token
     function paymentToken() external view returns (address);
 
-    /// How many $CTND will be received for the given payment amount
+    /// How many tokens coreespond the given $USDC amount (assuming initial sale price)
     function paymentTokenToToken(uint256 _paymentAmount) external view returns (uint256);
 
-    /// How many $USDC will be received for the given $CTND amount
+    /// How many $USDC corresponds to the given token amount (assuming initial sale price)
     function tokenToPaymentToken(uint256 _tokenAmount) external view returns (uint256);
 
     /// Commits an amount of $USDC to buy $CTND

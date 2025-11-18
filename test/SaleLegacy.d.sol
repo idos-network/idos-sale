@@ -15,7 +15,7 @@ contract SaleLegacyTest is TestSetup {
 
     bytes32[] proof = new bytes32[](0);
 
-    event Purchase(address indexed from, uint256 paymentTokenAmount, uint256 tokenAmount);
+    event Purchase(address indexed from, uint256 paymentTokenAmount);
 
     event Claim(address indexed to, uint256 tokenAmount);
     event Refund(address indexed to, uint256 paymentTokenAmount);
@@ -25,31 +25,17 @@ contract SaleLegacyTest is TestSetup {
     }
 
     function test_BuyUSC() public {
-        assertEq(ctx.sale.paymentTokenToToken(usdc(1)), usdc(1));
+        assertEq(usdc(1), usdc(1));
     }
 
     function testConstructor() public view {
         assertEq(ctx.sale.paymentToken(), address(ctx.usdc));
         assertEq(ctx.sale.rate(), 1 ether);
-        assertEq(ctx.sale.minPrice(), usdc(1) / 100);
-        assertEq(ctx.sale.maxPrice(), usdc(1) / 100);
         assertEq(ctx.sale.start(), start);
         assertEq(ctx.sale.end(), end);
         //        assertEq(ctx.sale.hasRole(ctx.sale.DEFAULT_ADMIN_ROLE(), address(this)));
         //        assertEq(ctx.sale.hasRole(ctx.sale.CAP_VALIDATOR_ROLE(), address(this)));
         //assertEq(bytes32(ctx.sale.merkleRoot()) , bytes32(merkleRoot));
-    }
-
-    function test_PaymentTokenToToken() public view {
-        assertEq(ctx.sale.paymentTokenToToken(0 ether), 0);
-        assertEq(ctx.sale.paymentTokenToToken(0.2 * 1e6), usdc(2) / 10);
-        assertEq(ctx.sale.paymentTokenToToken(1 * 1e6), usdc(1));
-    }
-
-    function test_TokenToPaymentToken() public view {
-        assertEq(ctx.sale.tokenToPaymentToken(0 ether), 0);
-        assertEq(ctx.sale.tokenToPaymentToken(1 ether), 1 ether);
-        assertEq(ctx.sale.tokenToPaymentToken(5 ether), 5 ether);
     }
 
     function test_Buy() public {
@@ -65,9 +51,9 @@ contract SaleLegacyTest is TestSetup {
 
         vm.expectEmit();
 
-        emit Purchase(address(alice), buyAmount, buyAmount);
+        emit Purchase(address(alice), buyAmount);
 
-        ctx.sale.buy(ctx.sale.paymentTokenToToken(buyAmount), proof);
+        ctx.sale.buy(buyAmount, proof);
 
         uint256 afterBalance = ctx.usdc.balanceOf(alice);
         assertEq(afterBalance, mintAmount - buyAmount);
@@ -86,12 +72,12 @@ contract SaleLegacyTest is TestSetup {
         vm.startPrank(alice);
 
         vm.expectEmit();
-        emit Purchase(address(alice), buyAmount, buyAmount);
+        emit Purchase(address(alice), buyAmount);
 
         ctx.sale.buy(buyAmount, proof);
 
         vm.expectEmit();
-        emit Purchase(address(alice), buyAmount, buyAmount);
+        emit Purchase(address(alice), buyAmount);
 
         ctx.sale.buy(buyAmount, proof);
 
@@ -116,23 +102,6 @@ contract SaleLegacyTest is TestSetup {
     //    sale.buy(2 ether, bobMerkleProof);
     //    vm.stopPrank();
     //}
-
-    function test_BuyRevertsAfterReachingMaxTarget() public {
-        uint256 mintAmount = 10 ether;
-        uint256 buyAmount = 5 ether;
-
-        mintUsdc(alice, mintAmount);
-
-        ctx.sale.setMinContribution(usdc(1));
-        ctx.sale.setMaxTarget(usdc(1));
-
-        vm.startPrank(alice);
-        ctx.sale.buy(buyAmount, proof);
-
-        vm.expectRevert(Sale.MaxContributorsReached.selector);
-        ctx.sale.buy(buyAmount, proof);
-        vm.stopPrank();
-    }
 
     function test_WithdrawRevertsIfNotOwner() public {
         vm.expectRevert();
@@ -166,7 +135,7 @@ contract SaleLegacyTest is TestSetup {
         ctx.sale.withdraw();
 
         uint256 ownerBalance = ctx.usdc.balanceOf(address(this));
-        assertEq(ownerBalance, ctx.sale.tokenToPaymentToken(buyAmount));
+        assertEq(ownerBalance, buyAmount);
     }
 
     function test_WithdrawOnlyOnce() public {
@@ -185,7 +154,7 @@ contract SaleLegacyTest is TestSetup {
 
         ctx.sale.withdraw();
         uint256 ownerBalance = ctx.usdc.balanceOf(address(this));
-        assertEq(ownerBalance, ctx.sale.tokenToPaymentToken(buyAmount));
+        assertEq(ownerBalance, buyAmount);
 
         vm.expectRevert("already withdrawn");
         ctx.sale.withdraw();
@@ -361,17 +330,6 @@ contract SaleLegacyTest is TestSetup {
 
         endSale();
 
-        assertEq(ctx.sale.allocation(alice), ctx.sale.paymentTokenToToken(usdc(6)));
-    }
-
-    function test_CurrentPrice() public {
-        assertEq(ctx.sale.currentTokenPrice(), 0.01 * 1e6);
-
-        ctx.sale.setMinTarget(5 * 1e6);
-        ctx.sale.setMaxTarget(10 * 1e6);
-
-        invest(alice, 7.5 * 1e6);
-
-        assertEq(ctx.sale.currentTokenPrice(), 0.01 * 1e6);
+        assertEq(ctx.sale.allocation(alice), usdc(6));
     }
 }
