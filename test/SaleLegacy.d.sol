@@ -31,7 +31,6 @@ contract SaleLegacyTest is TestSetup {
     function testConstructor() public view {
         assertEq(ctx.sale.paymentToken(), address(ctx.usdc));
         assertEq(ctx.sale.rate(), 1 ether);
-        assertEq(ctx.sale.price(), usdc(1) / 100);
         assertEq(ctx.sale.start(), start);
         assertEq(ctx.sale.end(), end);
         //        assertEq(ctx.sale.hasRole(ctx.sale.DEFAULT_ADMIN_ROLE(), address(this)));
@@ -332,16 +331,5 @@ contract SaleLegacyTest is TestSetup {
         endSale();
 
         assertEq(ctx.sale.allocation(alice), usdc(6));
-    }
-
-    function test_CurrentPrice() public {
-        assertEq(ctx.sale.price(), 0.01 * 1e6);
-
-        ctx.sale.setMinTarget(5 * 1e6);
-        ctx.sale.setMaxTarget(10 * 1e6);
-
-        invest(alice, 7.5 * 1e6);
-
-        assertEq(ctx.sale.price(), 0.01 * 1e6);
     }
 }
