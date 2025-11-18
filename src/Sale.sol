@@ -62,12 +62,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// Fixed price of token, expressed in paymentToken amount
     uint256 public immutable rate;
 
-    /// Fixed minimum price of token, expressed in paymentToken amount
-    uint256 public immutable minPrice;
-
-    /// Fixed maximum price of token, expressed in paymentToken amount
-    uint256 public immutable maxPrice;
-
     /// Minimum amount per contribution, expressed in paymentToken amount
     uint256 public minContribution;
 
@@ -140,8 +134,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         totalTokensForSale = _totalTokensForSale;
         minTarget = _minTarget;
         maxTarget = _maxTarget;
-        minPrice = 0.01 * 1e6;
-        maxPrice = 0.01 * 1e6;
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(CAP_VALIDATOR_ROLE, msg.sender);
@@ -267,18 +259,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         }
 
         return uncappedAllocation(_to);
-    }
-
-    function currentTokenPrice() public view returns (uint256) {
-        if (totalUncappedAllocations < minTarget) {
-            return minPrice;
-        }
-
-        if (totalUncappedAllocations > maxTarget) {
-            return maxPrice;
-        }
-
-        return minPrice + ((maxPrice - minPrice) * (totalUncappedAllocations - minTarget)) / (maxTarget - minTarget);
     }
 
     //
