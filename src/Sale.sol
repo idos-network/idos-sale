@@ -53,9 +53,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     // State
     //
 
-    /// See {ISale.token}
-    address public override(ISale) token;
-
     /// See {ISale.paymentToken}
     address public immutable override(ISale) paymentToken;
 
@@ -291,11 +288,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     //
     // Admin API
     //
-
-    function setToken(address _token) external onlyRole(DEFAULT_ADMIN_ROLE) beforeSale nonReentrant {
-        require(_token != address(0), "can't be zero");
-        token = _token;
-    }
 
     function setMerkleRoot(bytes32 _merkleRoot) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
         merkleRoot = _merkleRoot;
