@@ -38,7 +38,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     //
 
     /// Emitted for every public purchase
-    event Purchase(address indexed from, uint256 paymentTokenAmount, uint256 tokenAmount);
+    event Purchase(address indexed from, uint256 paymentTokenAmount);
 
     /// Emitted for every claim
     event Claim(address indexed to, uint256 tokenAmount);
@@ -53,20 +53,11 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     // State
     //
 
-    /// See {ISale.token}
-    address public override(ISale) token;
-
     /// See {ISale.paymentToken}
     address public immutable override(ISale) paymentToken;
 
     /// Fixed price of token, expressed in paymentToken amount
     uint256 public immutable rate;
-
-    /// Fixed minimum price of token, expressed in paymentToken amount
-    uint256 public immutable minPrice;
-
-    /// Fixed maximum price of token, expressed in paymentToken amount
-    uint256 public immutable maxPrice;
 
     /// Minimum amount per contribution, expressed in paymentToken amount
     uint256 public minContribution;
@@ -79,12 +70,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
     /// Timestamp at which sale ends
     uint256 public end;
-
-    /// Timestamp at which registration period starts
-    uint256 public startRegistration;
-
-    /// Timestamp at which registration period ends
-    uint256 public endRegistration;
 
     /// Total tokens available for sale
     uint256 public immutable totalTokensForSale;
@@ -113,7 +98,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     // Merkle root for contributions validation
     bytes32 public merkleRoot;
 
-    error MaxContributorsReached();
     error InvalidLeaf();
 
     /// @param _paymentToken Token accepted as payment
@@ -123,8 +107,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// @param _totalTokensForSale Total amount of tokens for sale
     /// @param _minTarget Minimum target for the sale
     /// @param _maxTarget Maximum target for the sale
-    /// @param _startRegistration Registration period start timestamp
-    /// @param _endRegistration Registration period end timestamp
     constructor(
         address _paymentToken,
         uint256 _rate,
@@ -132,9 +114,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         uint256 _end,
         uint256 _totalTokensForSale,
         uint256 _minTarget,
-        uint256 _maxTarget,
-        uint256 _startRegistration,
-        uint256 _endRegistration
+        uint256 _maxTarget
     ) {
         require(_paymentToken != address(0), "can't be zero");
         require(_rate > 0, "can't be zero");
@@ -143,7 +123,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         require(_totalTokensForSale > 0, "total cannot be 0");
         require(_minTarget > 0, "_minTarget cannot be 0");
         require(_maxTarget > _minTarget, "_maxTarget cannot be lower than _minTarget");
-        require(_endRegistration > _startRegistration, "_endRegistration cannot be lower than _startRegistration");
 
         paymentToken = _paymentToken;
         rate = _rate;
@@ -152,10 +131,6 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         totalTokensForSale = _totalTokensForSale;
         minTarget = _minTarget;
         maxTarget = _maxTarget;
-        startRegistration = _startRegistration;
-        endRegistration = _endRegistration;
-        minPrice = 0.01 * 1e6;
-        maxPrice = 0.01 * 1e6;
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(CAP_VALIDATOR_ROLE, msg.sender);
@@ -195,11 +170,10 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         withdrawn = true;
 
         uint256 allocatedAmount = allocated();
-        uint256 paymentTokenAmount = tokenToPaymentToken(allocatedAmount);
 
-        emit Withdraw(msg.sender, paymentTokenAmount);
+        emit Withdraw(msg.sender, allocatedAmount);
 
-        IERC20(paymentToken).transfer(msg.sender, paymentTokenAmount);
+        IERC20(paymentToken).transfer(msg.sender, allocatedAmount);
     }
 
     /// @inheritdoc ISale
@@ -213,19 +187,13 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     }
 
     /// @inheritdoc ISale
-    function buy(uint256 _amount, bytes32[] calldata _merkleProof) external override(ISale) inSale nonReentrant {
-        if (_investorCount >= maxTarget / minContribution) {
-            revert MaxContributorsReached();
-        }
-
+    function buy(uint256 _paymentAmount, bytes32[] calldata _merkleProof) external override(ISale) inSale nonReentrant {
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
         bool isValidLeaf = verifyLeaf(_merkleProof, leaf);
         if (!isValidLeaf) revert InvalidLeaf();
 
-        require(_amount >= paymentTokenToToken(minContribution), "can't be below minimum");
-
-        uint256 paymentAmount = tokenToPaymentToken(_amount);
-        require(paymentAmount > 0, "can't be zero");
+        require(_paymentAmount >= minContribution, "can't be below minimum");
+        require(_paymentAmount > 0, "can't be zero");
 
         uint256 currentAllocation = accounts[msg.sender].uncappedAllocation;
 
@@ -234,12 +202,12 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
             _investorCount++;
         }
 
-        accounts[msg.sender].uncappedAllocation += _amount;
-        totalUncappedAllocations += _amount;
+        accounts[msg.sender].uncappedAllocation += _paymentAmount;
+        totalUncappedAllocations += _paymentAmount;
 
-        emit Purchase(msg.sender, paymentAmount, _amount);
+        emit Purchase(msg.sender, _paymentAmount);
 
-        IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), paymentAmount);
+        IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), _paymentAmount);
     }
 
     /// @inheritdoc ISale
@@ -267,7 +235,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
             return 0;
         }
 
-        uint256 uncapped = tokenToPaymentToken(account.uncappedAllocation);
+        uint256 uncapped = account.uncappedAllocation;
         uint256 capped = allocation(to);
 
         return uncapped - capped;
@@ -279,28 +247,15 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
     /// @inheritdoc ISale
     function allocation(address _to) public view override(ISale) returns (uint256) {
-        if (tokenToPaymentToken(totalUncappedAllocations) < minTarget) {
+        if (totalUncappedAllocations < minTarget) {
             return 0;
         }
 
-        if (tokenToPaymentToken(totalUncappedAllocations) > maxTarget) {
-            return _applyCap(tokenToPaymentToken(uncappedAllocation(_to)));
+        if (totalUncappedAllocations > maxTarget) {
+            return _applyCap(uncappedAllocation(_to));
         }
 
-        return tokenToPaymentToken(uncappedAllocation(_to));
-    }
-
-    function currentTokenPrice() public view returns (uint256) {
-        if (tokenToPaymentToken(totalUncappedAllocations) < minTarget) {
-            return minPrice;
-        }
-
-        if (tokenToPaymentToken(totalUncappedAllocations) > maxTarget) {
-            return maxPrice;
-        }
-
-        return minPrice + ((maxPrice - minPrice) * (tokenToPaymentToken(totalUncappedAllocations) - minTarget))
-            / (maxTarget - minTarget);
+        return uncappedAllocation(_to);
     }
 
     //
@@ -317,12 +272,12 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         address addr = investorByIndex[i];
         Account storage account = accounts[addr];
 
-        return tokenToPaymentToken(account.uncappedAllocation);
+        return account.uncappedAllocation;
     }
 
     /// @inheritdoc RisingTide
     function risingTide_totalAllocatedUncapped() public view override(RisingTide) returns (uint256) {
-        return tokenToPaymentToken(totalUncappedAllocations);
+        return totalUncappedAllocations;
     }
 
     /// @inheritdoc RisingTide
@@ -334,21 +289,8 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     // Admin API
     //
 
-    function setToken(address _token) external onlyRole(DEFAULT_ADMIN_ROLE) beforeSale nonReentrant {
-        require(_token != address(0), "can't be zero");
-        token = _token;
-    }
-
     function setMerkleRoot(bytes32 _merkleRoot) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
         merkleRoot = _merkleRoot;
-    }
-
-    function setStartRegistration(uint256 _startRegistration) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
-        startRegistration = _startRegistration;
-    }
-
-    function setEndRegistration(uint256 _endRegistration) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
-        endRegistration = _endRegistration;
     }
 
     function setStart(uint256 _start) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
@@ -397,15 +339,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
     /// @return the amount of tokens already allocated
     function allocated() public view returns (uint256) {
-        uint256 totalUncappedInPaymentToken = tokenToPaymentToken(totalUncappedAllocations);
-
-        // If oversubscribed and cap is set, total allocated is exactly maxTarget
-        if (totalUncappedInPaymentToken > maxTarget && risingTide_isValidCap()) {
-            return paymentTokenToToken(maxTarget);
-        }
-
-        // If not oversubscribed, return min of uncapped allocations and total tokens for sale
-        return Math.min(totalUncappedAllocations, totalTokensForSale);
+        return Math.min(totalUncappedAllocations, maxTarget);
     }
 
     //

@@ -35,9 +35,7 @@ contract SaleMinTargetNotReachedTest is TestSetup {
         endSale();
 
         assertEq(ctx.usdc.balanceOf(address(ctx.sale)), usdc(7));
-        assertEq(
-            ctx.sale.totalUncappedAllocations(), ctx.sale.paymentTokenToToken(aliceAmount + bobAmount1 + bobAmount2)
-        );
+        assertEq(ctx.sale.totalUncappedAllocations(), aliceAmount + bobAmount1 + bobAmount2);
         assertEq(ctx.sale.allocation(address(alice)), aliceAmount);
         assertEq(ctx.sale.allocation(address(bob)), bobAmount1 + bobAmount2);
     }
@@ -54,7 +52,7 @@ contract SaleMinTargetNotReachedTest is TestSetup {
         invest(bob, amount);
 
         assertEq(ctx.sale.totalUncappedAllocations(), amount * 2);
-        assert(ctx.sale.totalUncappedAllocations() < ctx.sale.paymentTokenToToken(ctx.sale.minTarget()));
+        assert(ctx.sale.totalUncappedAllocations() < ctx.sale.minTarget());
 
         endSale();
 
