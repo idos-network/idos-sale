@@ -31,10 +31,10 @@ contract TestSetup is Test {
     // TODO hardcoding sale target to [1$, 10_000_000$]
     // hardcoding tokens for sale to 1 ether, but shouldn't be a problem as all we care about are relative allocations
     function setup() internal {
-        setup(1 ether);
+        setup(1 ether, 2 ether);
     }
 
-    function setup(uint256 maxTarget) internal {
+    function setup(uint256 minTarget, uint256 maxTarget) internal {
         start = vm.getBlockTimestamp();
         end = start + 24 hours;
 
@@ -44,13 +44,13 @@ contract TestSetup is Test {
             1 ether, // rate TODO: set to 1 for now to get it out of the way
             start, // start timestamp
             end, // end timestamp
-            1 ether, // tokens for sale TODO: set to 1 for now to get it out of the way
-            1, // min target
+            minTarget,
             maxTarget
         );
 
         // TODO: min contribution set to minimum non-zero possible, just to get it out of the way for now
         ctx.sale.setMinContribution(1);
+        ctx.sale.setCustodian(address(this));
     }
 
     function usdc(uint256 amount) internal pure returns (uint256) {
@@ -66,7 +66,7 @@ contract TestSetup is Test {
     }
 
     function assertFullCase(Case memory c) internal {
-        setup(c.maxTarget);
+        setup(1, c.maxTarget);
         applyDeposits(c.investors);
         c.computedCap = assertRisingTideCap(c);
         assertRefunds(c);

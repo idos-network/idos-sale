@@ -21,7 +21,7 @@ contract OffChaincalculatorTest is TestSetup {
 
         uint256 start = vm.getBlockTimestamp();
         uint256 end = start + 24 hours;
-        ctx.sale = new SaleHarnessNoMerkle(address(ctx.usdc), 1 * 1e6, start, end, 100 ether, 5 * 1e6, 100 * 1e6);
+        ctx.sale = new SaleHarnessNoMerkle(address(ctx.usdc), 1 * 1e6, start, end, 5 * 1e6, 100 * 1e6);
 
         ctx.sale.setMinContribution(1);
 
@@ -59,8 +59,8 @@ contract OffChaincalculatorTest is TestSetup {
     }
 
     function test_gitbook() public {
-        ctx.sale.setMaxTarget(500_000);
         ctx.sale.setMinTarget(0);
+        ctx.sale.setMaxTarget(500_000);
 
         address[10] memory investors = [
             makeAddr("inv1"),
@@ -96,8 +96,8 @@ contract OffChaincalculatorTest is TestSetup {
 
     function test_gitbook_small() public {
         // Arrange
-        ctx.sale.setMaxTarget(500_000);
         ctx.sale.setMinTarget(0);
+        ctx.sale.setMaxTarget(500_000);
 
         // Create 10 mock investors
         address[1] memory investors = [makeAddr("inv1")];
