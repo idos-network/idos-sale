@@ -50,6 +50,9 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     /// Emitted every time someone withdraws their funds
     event Withdraw(address indexed to, uint256 paymentTokenAmount);
 
+    /// Emitted when the custodian is set
+    event CustodianSet(address indexed custodian);
+
     //
     // State
     //
@@ -96,7 +99,11 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     // Merkle root for contributions validation
     bytes32 public merkleRoot;
 
+    /// Custodian address for fund withdrawal
+    address public custodian;
+
     error InvalidLeaf();
+    error CustodianNotSet();
 
     /// @param _paymentToken Token accepted as payment
     /// @param _rate token:paymentToken exchange rate, multiplied by 10e18
@@ -160,6 +167,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     function withdraw() external onlyRole(DEFAULT_ADMIN_ROLE) capCalculated nonReentrant {
         require(block.timestamp > end, "sale not ended yet");
         require(!withdrawn, "already withdrawn");
+        require(custodian != address(0), CustodianNotSet());
 
         withdrawn = true;
 
@@ -167,7 +175,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
 
         emit Withdraw(msg.sender, allocatedAmount);
 
-        IERC20(paymentToken).transfer(msg.sender, allocatedAmount);
+        IERC20(paymentToken).transfer(custodian, allocatedAmount);
     }
 
     /// @inheritdoc ISale
@@ -303,6 +311,12 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
     function setMaxTarget(uint256 _maxTarget) external onlyRole(DEFAULT_ADMIN_ROLE) beforeSale nonReentrant {
         require(_maxTarget >= minTarget, "_maxTarget cannot be lower than minTarget");
         maxTarget = _maxTarget;
+    }
+
+    function setCustodian(address _custodian) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
+        require(_custodian != address(0), "can't be zero");
+        custodian = _custodian;
+        emit CustodianSet(_custodian);
     }
 
     /// Sets the individual cap
