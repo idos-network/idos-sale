@@ -1,0 +1,11 @@
+{
+	"name": "idos-sale",
+	"packageManager": "yarn@4.9.1",
+	"scripts": {
+		"wagmi:generate": "wagmi generate"
+	},
+	"dependencies": {
+		"@wagmi/cli": "^2.8.0",
+		"typescript": "^5.9.3"
+	}
+}
