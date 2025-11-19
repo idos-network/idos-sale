@@ -9,7 +9,7 @@ contract Deploy is Script {
     uint256 rate = 0.02 * 1e6; // 0.2 USDC per token
     uint256 start = 0; // TODO
     uint256 end = 0; // TODO
-    uint256 totalTokensForSale = 25_000_000 ether; // TODO
+    uint256 totalTokensForSale = 25_000_000 ether;
     uint256 minTarget = 500_000 * 1e6; // 500k USDC
     uint256 maxTarget = 2_000_000 * 1e6; // 2M USDC
 
@@ -18,19 +18,13 @@ contract Deploy is Script {
 
     function run() public {
         vm.startBroadcast();
-        Sale sale = new Sale(
-            usdc,
-            rate,
-            start,
-            end,
-            totalTokensForSale,
-            minTarget,
-            maxTarget,
-            1, // TODO old value
-            2 // TODO old value
-        );
-        sale.grantRole(sale.CAP_VALIDATOR_ROLE(), capValidator);
-        sale.setCustodian(custodian);
+        Sale sale = new Sale(usdc, rate, start, end, minTarget, maxTarget);
+        require(sale.totalTokensForSale() == totalTokensForSale, "total tokens for sale incorrect");
+
+        // TODO: maybe these two doesn't even need to be here and will be set afterwards?
+        // sale.grantRole(sale.CAP_VALIDATOR_ROLE(), capValidator);
+        // sale.setCustodian(custodian);
+
         vm.stopBroadcast();
     }
 }
