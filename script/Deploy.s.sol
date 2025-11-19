@@ -13,18 +13,10 @@ contract Deploy is Script {
     uint256 minTarget = 500_000 * 1e6; // 500k USDC
     uint256 maxTarget = 2_000_000 * 1e6; // 2M USDC
 
-    address capValidator = address(0x1); // TODO
-    address custodian = address(0x1); // TODO
-
     function run() public {
         vm.startBroadcast();
         Sale sale = new Sale(usdc, rate, start, end, minTarget, maxTarget);
         require(sale.totalTokensForSale() == totalTokensForSale, "total tokens for sale incorrect");
-
-        // TODO: maybe these two doesn't even need to be here and will be set afterwards?
-        // sale.grantRole(sale.CAP_VALIDATOR_ROLE(), capValidator);
-        // sale.setCustodian(custodian);
-
         vm.stopBroadcast();
     }
 }
