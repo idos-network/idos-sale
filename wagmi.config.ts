@@ -6,7 +6,7 @@ export default defineConfig({
 	plugins: [
 		foundry({
 			project: "./",
-			exclude: ["MockERC20.sol", "Sale.d.sol", "IERC20.sol", "Deploy.s.sol"],
+			exclude: ["MockERC20.sol", "Sale.d.sol", "IERC20.sol"],
 			// legacy name, for compatibility reasons
 			namePrefix: "Ctznd",
 			deployments: {
