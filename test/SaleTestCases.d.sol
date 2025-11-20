@@ -1,5 +1,14 @@
 pragma solidity ^0.8.24;
 
+/**
+ * THIS TEST IS BEING SKIPPED.
+ *
+ * If you want to run it, you need to set `via_ir = false` in `foundry.toml`.
+ * Keep in mind that, with that config option, tests under
+ * `test/original_suite/` will start failing.
+ *
+ */
+
 import "forge-std/Test.sol";
 
 import {Sale} from "../src/Sale.sol";
