@@ -1,7 +1,5 @@
 ## idOS token sale contract
 
-This is a token Sale contract, adapted from the original Citizend contract at https://github.com/subvisual/citizend
-
 Overall features:
 
 - Rising tide mechanism (off-chain calculation, on-chain validation)
