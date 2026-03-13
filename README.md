@@ -2,6 +2,8 @@
 
 This is a token Sale contract, adapted from the original Citizend contract at https://github.com/subvisual/citizend
 
+It powered the idOS community sale. Deployment at https://arbiscan.io/address/0x529ee3fef72993539d599b78606274ec8b2965cf
+
 Overall features:
 
 - Rising tide mechanism (off-chain calculation, on-chain validation)
