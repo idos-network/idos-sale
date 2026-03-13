@@ -76,4 +76,28 @@ contract SaleMinTargetNotReachedTest is TestSetup {
 
         assertEq(ctx.usdc.balanceOf(address(ctx.sale)), 0);
     }
+
+    function test_WithdrawRevertsWhenMinTargetNotReached() public {
+        ctx.sale.setMinTarget(1 ether);
+
+        uint256 amount = (ctx.sale.minTarget() / 2) - (usdc(1));
+
+        invest(alice, amount);
+        invest(bob, amount);
+
+        assertEq(ctx.sale.totalUncappedAllocations(), amount * 2);
+        assertLt(ctx.sale.totalUncappedAllocations(), ctx.sale.minTarget());
+
+        endSale();
+        setCap();
+
+        assertEq(ctx.sale.allocation(alice), 0);
+        assertEq(ctx.sale.refundAmount(alice), amount);
+
+        vm.expectRevert("minTarget not reached");
+        ctx.sale.withdraw();
+
+        assertEq(ctx.usdc.balanceOf(address(ctx.sale)), amount * 2);
+        assertEq(ctx.usdc.balanceOf(address(this)), 0);
+    }
 }

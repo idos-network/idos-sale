@@ -169,6 +169,7 @@ contract Sale is ISale, RisingTide, ERC165, AccessControl, ReentrancyGuard {
         require(block.timestamp > end, "sale not ended yet");
         require(!withdrawn, "already withdrawn");
         require(custodian != address(0), CustodianNotSet());
+        require(totalUncappedAllocations >= minTarget, "minTarget not reached");
 
         withdrawn = true;
 

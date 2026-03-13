@@ -122,6 +122,7 @@ contract SaleLegacyTest is TestSetup {
         uint256 mintAmount = usdc(2);
         uint256 buyAmount = usdc(2);
 
+        ctx.sale.setMinTarget(buyAmount);
         mintUsdc(alice, mintAmount);
 
         vm.startPrank(alice);
@@ -142,6 +143,7 @@ contract SaleLegacyTest is TestSetup {
         uint256 mintAmount = usdc(2);
         uint256 buyAmount = usdc(2);
 
+        ctx.sale.setMinTarget(buyAmount);
         mintUsdc(alice, mintAmount);
 
         vm.startPrank(alice);
@@ -192,7 +194,10 @@ contract SaleLegacyTest is TestSetup {
         vm.stopPrank();
 
         uint256 ownerBalanceAfter = ctx.usdc.balanceOf(address(this));
-        assertEq(ownerBalanceAfter - ownerBalanceBefore, (amount * 2) - aliceRefund - bobRefund);
+        assertEq(
+            ownerBalanceAfter - ownerBalanceBefore,
+            (amount * 2) - aliceRefund - bobRefund
+        );
     }
 
     function test_SetIndividualCap() public {
@@ -240,7 +245,9 @@ contract SaleLegacyTest is TestSetup {
         assertEq(ctx.sale.refundAmount(alice), 0);
     }
 
-    function test_RefundAmountIsZeroIfIndividualCapIsHigherThanInvestedTotal() public {
+    function test_RefundAmountIsZeroIfIndividualCapIsHigherThanInvestedTotal()
+        public
+    {
         ctx.sale.setMinTarget(usdc(1));
         ctx.sale.setMaxTarget(usdc(10));
 
